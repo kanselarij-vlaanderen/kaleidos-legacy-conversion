@@ -85,6 +85,8 @@ class Mandatee:
         ]
         if self.end_date:
             triples.append((uri, ns.MANDAAT['einde'], Literal(self.end_date.isoformat(), datatype=XSD.date)))
+        if self.official_title:
+            triples.append((uri, ns.DCT['title'], Literal(self.official_title)))
 
         return triples
 
