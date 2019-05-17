@@ -1,11 +1,10 @@
 #!/usr/bin/python3
 import itertools
 import logging
-import os
 
 from .doris_export_parsers import p_doc_name
 from .model.document_version import DocumentVersion
-from .model.document_name import *
+from .model.document_name import VrBeslissingsficheName, VersionedDocumentName
 from .model.agenda import Agendapunt
 from .create_files import create_file
 
@@ -38,14 +37,6 @@ def description_from_dar_onderwerp(dar_onderwerp):
         return lines[0].strip()
     return None
 
-def determineFileFolderPath(context, document_type, filename, subfolder=''):
-    assert context in ('VR', 'OC')
-    assert document_type in ('document', 'fiche')
-    export_folder_path = "exportDoris/{}/dar_doris_{}_{}/content/".format(context.upper(), context.lower(), document_type)
-    if (context == 'VR') and (document_type == 'document'):
-        export_folder_path += "{}/".format(str(filename[0:11]))
-    return os.path.join(subfolder, export_folder_path).rstrip('/') + '/'
-
 def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut, file_src2uuid_lut=None):
     files = []
     documenten = []
@@ -59,7 +50,6 @@ def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut
             raise Exception("Document type should be 'fiche' or 'document'")
 
         file = create_file(doc_src, file_metadata_lut, file_src2uuid_lut)
-        file.folder_path = determineFileFolderPath('VR', doc_src_type, file.physical_name, '')
         files.append(file)
         doc = DocumentVersion(doc_src['r_object_id']['parsed'], doc_src['object_name']['source'])
         doc.mufile = file

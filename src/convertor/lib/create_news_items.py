@@ -7,7 +7,6 @@ import html2text
 import pymysql
 from pytz import timezone
 
-from .config.nieuwsberichten import DB_CONFIG
 from .model.news_item import NewsItem
 
 TIMEZONE = timezone('Europe/Brussels')
@@ -45,7 +44,7 @@ def create_news_item_from_src(src):
     ni.document_refs = list(set(src['document_ids'].split(','))) if src['document_ids'] else []
     return ni
 
-def create_news_items():
+def create_news_items(DB_CONFIG):
     connection = pymysql.connect(**DB_CONFIG, cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:

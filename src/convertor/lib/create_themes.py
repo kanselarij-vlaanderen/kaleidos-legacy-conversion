@@ -3,14 +3,13 @@ import os.path
 
 import pymysql
 
-from .config.nieuwsberichten import DB_CONFIG
 from .model.news_item import Theme
 
 dirname = os.path.dirname(__file__)
 with open(os.path.join(dirname, './queries/themes.sql'), mode='r') as f:
     QUERY_THEMAS = f.read()
 
-def create_themes():
+def create_themes(DB_CONFIG):
     connection = pymysql.connect(**DB_CONFIG, cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
