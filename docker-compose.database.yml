@@ -1,0 +1,19 @@
+version: '3.1'
+
+services:
+
+  nieuwsberichten-db:
+    image: mysql:5.7
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    volumes:
+      - /data/nieuwsberichten:/docker-entrypoint-initdb.d
+
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+    depends_on:
+      - "nieuwsberichten-db"
+

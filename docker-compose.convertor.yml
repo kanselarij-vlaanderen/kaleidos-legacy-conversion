@@ -2,10 +2,10 @@ version: '3.1'
 
 services:
 
-  file-dump:
+  convertor:
     build:
       context: ./src/convertor/
     volumes:
       - ./data/:/data
       - ./output/:/output
-    command: ["./create_dump.sh", "create_file_dump.py"]
+    command: ["tail", "-f", "/dev/null"]
