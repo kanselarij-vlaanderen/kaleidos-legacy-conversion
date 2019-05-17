@@ -118,7 +118,7 @@ class Agenda:
             (zitting_uri, RDF['type'], ns.BESLUIT['Zitting']),
             (zitting_uri, ns.MU['uuid'], Literal(self.zitting_uuid)),
             (zitting_uri, ns.DCT['source'], URIRef(self.uri(base_uri))),
-            (zitting_uri, ns.BESLUIT['geplandeStart'], Literal(datetime.datetime.combine(self.datum, datetime.time(12, 0, 0), TIMEZONE).isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)),
+            (zitting_uri, ns.BESLUIT['geplandeStart'], Literal(TIMEZONE.localize(datetime.datetime.combine(self.datum, datetime.time(12, 0, 0))).isoformat(), datatype=XSD.dateTime)),
             # (zitting_uri, ns.PROV['startedAtTime'], Literal()),
             # (zitting_uri, ns.PROV['endedAtTime'], Literal()),
             (zitting_uri, ns.ADMS['identifier'], Literal(self.zittingnr)),
@@ -303,6 +303,7 @@ class Agendapunt():
         triples = [
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
+            (uri, ns.DCT['alternative'], Literal(self.beslissingsfiche.source_name)),
         ]
         procedurestap_triples.append((procedurestap_uri, ns.BESLUITVORMING['isGeagendeerdVia'], uri)) # Zie procedurestap
         if self.type in ('PUNT', 'MEDEDELING'):
