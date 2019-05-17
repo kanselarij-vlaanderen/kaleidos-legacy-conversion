@@ -3,7 +3,7 @@ import itertools
 import logging
 import os.path
 
-import html2text
+from bs4 import BeautifulSoup
 import pymysql
 from pytz import timezone
 
@@ -18,7 +18,7 @@ def create_news_item_from_src(src):
     try:
         if src['agenda_date'] and src['body_value'] and (src['body_format'] in ('geen_tabellen', 'filtered_html')):
             structured_text = src['body_value']
-            plain_text = html2text.html2text(src['body_value'])
+            plain_text = BeautifulSoup(src['body_value']).get_text()
             ni = NewsItem(src['nid'], src['agenda_date'], src['description'], plain_text, structured_text)
             ni.public = bool(int(src['status']))
             if src['date_published']:
