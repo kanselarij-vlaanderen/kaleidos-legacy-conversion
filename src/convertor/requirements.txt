@@ -1,4 +1,4 @@
 pymysql
-html2text
+beautifulsoup4
 pytz
 rdflib
