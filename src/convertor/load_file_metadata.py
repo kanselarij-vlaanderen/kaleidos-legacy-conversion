@@ -8,6 +8,7 @@ custom_trans_meta = {
     'filename':  {'parser': str, 'required': True},
     'filesize': {'parser': int, 'required': False},
     'creation_date': {'parser': lambda d: datetime.datetime.fromisoformat(d.replace('Z', '+00:00')), 'required': False},
+    'modified_date': {'parser': lambda d: datetime.datetime.fromisoformat(d.replace('Z', '+00:00')), 'required': False},
 }
 
 def load_file_metadata(path):

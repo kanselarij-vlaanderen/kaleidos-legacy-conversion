@@ -37,7 +37,7 @@ def description_from_dar_onderwerp(dar_onderwerp):
         return lines[0].strip()
     return None
 
-def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut, file_src2uuid_lut=None):
+def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut, file_uuid_lut=None):
     files = []
     documenten = []
     agendapunten = []
@@ -49,7 +49,7 @@ def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut
         else:
             raise Exception("Document type should be 'fiche' or 'document'")
 
-        file = create_file(doc_src, file_metadata_lut, file_src2uuid_lut)
+        file = create_file(doc_src, file_metadata_lut, None, file_uuid_lut)
         files.append(file)
         doc = DocumentVersion(doc_src['r_object_id']['parsed'], doc_src['object_name']['source'])
         doc.mufile = file

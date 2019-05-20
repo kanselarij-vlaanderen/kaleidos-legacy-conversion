@@ -42,7 +42,7 @@ if __name__ == "__main__":
             export_folder_path = "exportDoris/{}/dar_doris_{}_{}/content/".format(context.upper(), context.lower(), metadata_doc_type)
             physical_file_folder = os.path.join(config.KALEIDOS_SHARE_EXPORT_SUBFOLDER, export_folder_path).rstrip('/') + '/'
 
-            files, id2uuid_out = create_files(parsed_file_source, physical_file_folder, file_metadata_lut, file_uuid_lut)
+            files, id2uuid_out = create_files(parsed_file_source, file_metadata_lut, physical_file_folder, file_uuid_lut)
             filename = '{}_{}_{}.json'.format(NOW, context, metadata_doc_type)
             dump_file_mapping(id2uuid_out, os.path.join(config.FILE_MAPPING_FOLDER_PATH, filename))
 

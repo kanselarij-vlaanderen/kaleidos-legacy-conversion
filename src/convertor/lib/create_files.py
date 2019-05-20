@@ -10,7 +10,7 @@ MIMETYPE_2_EXTENSION = {
     'application/pdf': 'pdf',
 }
 
-def create_file(file_src, physical_file_folder=None):
+def create_file(file_src, metadata_lut=None, physical_file_folder=None, uuid_lut=None):
     file = MuFile()
     file.physical_name = file_src['r_object_id']['parsed']
     file.mimetype = file_src['a_content_type']['parsed'][1]
@@ -21,27 +21,27 @@ def create_file(file_src, physical_file_folder=None):
         raise ValueError('Unknown mimetype \'{}\''.format(file.mimetype))
     if physical_file_folder:
         file.folder_path = physical_file_folder
+    if metadata_lut:
+        try:
+            f = metadata_lut[file.physical_name + '.' + file.extension]
+            if 'filesize' in f:
+                file.size = f['filesize']
+            if 'creation_date' in f:
+                file.created = f['creation_date']
+        except KeyError:
+            pass
+    if uuid_lut:
+        try:
+            file.uuid = uuid_lut[file.physical_name + '.' + file.extension]
+        except KeyError:
+            pass
     return file
 
-def create_files(parsed_import, physical_file_folder=None, metadata_lut=None, uuid_lut=None):
+def create_files(parsed_import, metadata_lut=None, physical_file_folder=None, uuid_lut=None):
     files = []
     uuid_lut_out = {}
     for file_src in parsed_import:
-        file = create_file(file_src, physical_file_folder)
-        if metadata_lut:
-            try:
-                f = metadata_lut[file.physical_name + '.' + file.extension]
-                if 'filesize' in f:
-                    file.size = f['filesize']
-                if 'creation_date' in f:
-                    file.created = f['creation_date']
-            except KeyError:
-                pass
-        if uuid_lut:
-            try:
-                file.uuid = uuid_lut[file.physical_name + '.' + file.extension]
-            except KeyError:
-                pass
+        file = create_file(file_src, metadata_lut, physical_file_folder, uuid_lut)
         uuid_lut_out[file.physical_name + '.' + file.extension] = file.uuid
         files.append(file)
 
