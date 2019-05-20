@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import os.path
+import json
 
 from .model.mu_file import MuFile
 
@@ -10,11 +10,9 @@ MIMETYPE_2_EXTENSION = {
     'application/pdf': 'pdf',
 }
 
-def create_file(file_src, physical_file_folder=None, metadata_lut=None, src2uuid_in=None, name=None):
+def create_file(file_src, physical_file_folder=None):
     file = MuFile()
     file.physical_name = file_src['r_object_id']['parsed']
-    if src2uuid_in and file.physical_name in src2uuid_in:
-        file.uuid = src2uuid_in[file.physical_name]
     file.mimetype = file_src['a_content_type']['parsed'][1]
     file.name = file_src['object_name']['source']
     try:
@@ -23,23 +21,37 @@ def create_file(file_src, physical_file_folder=None, metadata_lut=None, src2uuid
         raise ValueError('Unknown mimetype \'{}\''.format(file.mimetype))
     if physical_file_folder:
         file.folder_path = physical_file_folder
-    if metadata_lut:
-        try:
-            f = metadata_lut[file.physical_name + '.' + file.extension]
-            if 'filesize' in f:
-                file.size = f['filesize']
-            if 'creation_date' in f:
-                file.created = f['creation_date']
-        except KeyError:
-            pass
     return file
 
-def create_files(parsed_import, physical_file_folder=None, metadata_lut=None, src2uuid_in=None):
+def create_files(parsed_import, physical_file_folder=None, metadata_lut=None, uuid_lut=None):
     files = []
-    srcid2uuid_out = {}
+    uuid_lut_out = {}
     for file_src in parsed_import:
-        file = create_file(file_src, physical_file_folder, metadata_lut, src2uuid_in)
-        srcid2uuid_out[file.physical_name + '.' + file.extension] = file.uuid
+        file = create_file(file_src, physical_file_folder)
+        if metadata_lut:
+            try:
+                f = metadata_lut[file.physical_name + '.' + file.extension]
+                if 'filesize' in f:
+                    file.size = f['filesize']
+                if 'creation_date' in f:
+                    file.created = f['creation_date']
+            except KeyError:
+                pass
+        if uuid_lut:
+            try:
+                file.uuid = uuid_lut[file.physical_name + '.' + file.extension]
+            except KeyError:
+                pass
+        uuid_lut_out[file.physical_name + '.' + file.extension] = file.uuid
         files.append(file)
 
-    return files, srcid2uuid_out
+    return files, uuid_lut_out
+
+def load_file_mapping(path):
+    with open(path, mode='r') as f:
+        uuids_by_id = json.load(f)
+    return uuids_by_id
+
+def dump_file_mapping(uuid_lut, path):
+    with open(path, mode='w') as f:
+        json.dump(uuid_lut, f)

@@ -7,6 +7,7 @@ LOG_LEVEL = logging.INFO
 DORIS_EXPORT_FOLDER_PATH = environ.get('DORIS_EXPORT_FOLDER_PATH', '/data/doris')
 
 FILE_METADATA_FOLDER_PATH = environ.get('FILE_METADATA_FOLDER_PATH', '/data/tmp/file_metadata')
+FILE_MAPPING_FOLDER_PATH = environ.get('FILE_MAPPING_FOLDER_PATH', '/data/tmp/file_id2uuid_mapping')
 
 TTL_FOLDER_PATH = environ.get('TTL_FOLDER_PATH', '/output/ttl')
 LOG_FOLDER_PATH = environ.get('LOG_FOLDER_PATH', '/output/log')
