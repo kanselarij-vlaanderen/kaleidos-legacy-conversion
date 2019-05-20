@@ -19,7 +19,8 @@ from lib.search import find_agenda_document, find_notulen_document, find_agenda
 
 from lib.create_news_items import create_news_items, group_news_items_by_agenda_date
 # from import_nieuwsberichten.role_creator import create_roles, roles_by_label
-from lib.create_themes import create_themes, themes_by_id
+from lib.create_themes import create_themes, themes_by_id, load_theme_mapping
+from lib.create_files import load_file_mapping
 
 from lib.create_document_types import create_document_types
 from lib.create_dossiers import create_dossiers
@@ -30,10 +31,16 @@ from load_file_metadata import load_file_metadata
 # PARSE AND LOAD METADATA
 ###########################################################
 file_metadata_lut = {}
-for file in [f for f in os.listdir(config.FILE_METADATA_FOLDER_PATH) if f.endswith('.csv')]:
+for file in [f for f in os.listdir(config.FILE_METADATA_FOLDER_PATH) if f.endswith('.csv') and 'errata' not in f]:
     file_metadata_lut = {
         **file_metadata_lut,
         **load_file_metadata(os.path.join(config.FILE_METADATA_FOLDER_PATH, file))
+    }
+file_uuid_lut = {}
+for file in [f for f in os.listdir(config.FILE_MAPPING_FOLDER_PATH) if f.endswith('.json')]:
+    file_uuid_lut = {
+        **file_uuid_lut,
+        **load_file_mapping(os.path.join(config.FILE_MAPPING_FOLDER_PATH, file))
     }
 
 parsed_doc_source = import_csv(config.EXPORT_FILES['VR']['document'],
@@ -43,11 +50,14 @@ parsed_fiche_source = import_csv(config.EXPORT_FILES['VR']['fiche'],
                                  config.DORIS_EXPORT_ENCODING,
                                  custom_trans_fiche)
 
+theme_uuid_lut = load_theme_mapping(config.THEME_MAPPING_FILE_PATH)
+
+
 ###########################################################
 # CONVERT TO OBJECT MODEL
 ###########################################################
-doc_parsed = create_files_document_versions_agenda_items(parsed_doc_source, file_metadata_lut)
-fiche_parsed = create_files_document_versions_agenda_items(parsed_fiche_source, file_metadata_lut)
+doc_parsed = create_files_document_versions_agenda_items(parsed_doc_source, file_metadata_lut, file_uuid_lut)
+fiche_parsed = create_files_document_versions_agenda_items(parsed_fiche_source, file_metadata_lut, file_uuid_lut)
 files = doc_parsed[0] + fiche_parsed[0]
 document_versions = doc_parsed[1] + fiche_parsed[1]
 agenda_items = doc_parsed[2] + fiche_parsed[2]
@@ -63,7 +73,7 @@ agendas = create_agendas(agenda_items)
 
 news_items = create_news_items(config.NIEUWSBERICHTEN_DB_CONFIG)
 
-themes = create_themes(config.NIEUWSBERICHTEN_DB_CONFIG)
+themes = create_themes(config.NIEUWSBERICHTEN_DB_CONFIG, theme_uuid_lut)
 
 governments = create_governments()
 
@@ -175,8 +185,9 @@ if __name__ == "__main__":
             g.add(triple)
 
     for theme in themes:
-        for triple in theme.triples(ns, config.KALEIDOS_API_URI, config.NIEUWSBERICHTEN_EXPORT_URI):
-            g.add(triple)
+        if theme.deprecated: # Code list for themes exists. Only dump deprecated ones.
+            for triple in theme.triples(ns, config.KALEIDOS_API_URI, config.NIEUWSBERICHTEN_EXPORT_URI):
+                g.add(triple)
 
     for person in persons:
         for triple in person.triples(ns, config.KALEIDOS_API_URI, config.DORIS_EXPORT_URI):

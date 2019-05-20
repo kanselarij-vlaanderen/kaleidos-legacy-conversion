@@ -294,6 +294,9 @@ class Agendapunt():
             procedurestap_triples.append((procedurestap_uri, ns.DCT['relation'], URIRef(rel_procedurestap_uri)))
         for rel_doc in self.rel_docs:
             procedurestap_triples.append((procedurestap_uri, ns.EXT['bevatDocumentversie'], URIRef(rel_doc.uri(base_uri))))
+        if self.news_item:
+            for theme in self.news_item.themes:
+                procedurestap_triples.append((procedurestap_uri, ns.DCT['subject'], URIRef(theme.uri(base_uri))))
         # besluitvorming:isGeagendeerdVia via Agendapunt
         # besluitvorming:isAangevraagdVoor -> zie Agenda
         # ext:subcaseProcedurestapFase # TODO, na aanmaken v procedurestappen de fase materializen adhv aantal in dossier? Low prio
@@ -330,6 +333,9 @@ class Agendapunt():
             triples.append((uri, ns.EXT['heeftBevoegdeVoorAgendapunt'], URIRef(mandatee.uri(base_uri))))
         for rel_doc in self.rel_docs:
             triples.append((uri, ns.EXT['bevatAgendapuntDocumentversie'], URIRef(rel_doc.uri(base_uri))))
+        if self.news_item:
+            for theme in self.news_item.themes:
+                triples.append((uri, ns.EXT['agendapuntSubject'], URIRef(theme.uri(base_uri))))
 
         # NieuwsbriefInfo
         if self.news_item:

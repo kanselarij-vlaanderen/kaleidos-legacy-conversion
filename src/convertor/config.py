@@ -25,6 +25,9 @@ GRAPH_NAME = 'http://mu.semte.ch/graphs/public'
 
 KALEIDOS_SHARE_EXPORT_SUBFOLDER = '' # Subfolder within the share folder where the export files folder will be located
 
+
+THEME_MAPPING_FILE_PATH = "/data/tmp/theme_id2uuid_mapping.json"
+
 # PRIVATE
 ####################################################################################################
 

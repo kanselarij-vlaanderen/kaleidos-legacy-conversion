@@ -11,6 +11,7 @@ class Theme:
         self.uuid = str(uuid.uuid1())
         self.id = None
         self.label = label
+        self.deprecated = False
 
     def __str__(self):
         return self.label
@@ -31,6 +32,9 @@ class Theme:
             (uri, ns.SKOS['prefLabel'], Literal(self.label)),
             (uri, ns.SKOS['topConceptOf'], ns.EXT['ThemaCode']),
         ]
+        if self.deprecated:
+            triples.append((uri, ns.OWL['deprecated'], Literal(self.deprecated, datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))))
+
         return triples
 
 class NewsItem:
@@ -116,7 +120,7 @@ class NewsItem:
         if self.public and self.documents_date_published:
             triples.append((uri, ns.EXT['issuedDocDate'], Literal(self.documents_date_published.isoformat(), datatype=XSD.dateTime)))
         for theme in self.themes:
-            triples.append((uri, ns.DCT['subject'], URIRef(theme.uri(base_uri))))
+            triples.append((uri, ns.EXT['themesOfSubcase'], URIRef(theme.uri(base_uri))))
         for doc_ver in self.document_versions:
             triples.append((uri, ns.EXT['documentenVoorPublicatie'], URIRef(doc_ver.uri(base_uri))))
         return triples
