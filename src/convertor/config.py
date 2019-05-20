@@ -2,7 +2,7 @@ import datetime
 import logging
 from os import path, environ
 
-LOG_LEVEL = logging.INFO
+LOG_LEVEL = logging.getLevelName(environ.get('LOG_LEVEL', 'INFO'))
 
 DORIS_EXPORT_FOLDER_PATH = environ.get('DORIS_EXPORT_FOLDER_PATH', '/data/doris')
 
