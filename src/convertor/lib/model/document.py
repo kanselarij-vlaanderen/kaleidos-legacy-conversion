@@ -51,9 +51,10 @@ class Document:
             (uri, RDF['type'], ns.FOAF['Document']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.DCT['source'], URIRef(self.src_uri(base_uri))),
-            # (uri, ns.BESLUITVORMING['stuknummerVR'], Literal('????')),
             # (uri, ns.??['??'], Literal(self.confidential)), # TODO confidentiality model?
         ]
+        if self.name:
+            triples.append((uri, ns.BESLUITVORMING['stuknummerVR'], Literal(self.name)))
         if self.title:
             triples.append((uri, ns.DCT['title'], Literal(self.title)))
         if self.description:
