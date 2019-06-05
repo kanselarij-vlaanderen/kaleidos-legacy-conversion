@@ -33,7 +33,7 @@ THEME_MAPPING_FILE_PATH = "/data/tmp/theme_id2uuid_mapping.json"
 
 EXPORT_FILE_PATH_FS = "export dar_doris_{}_{}/metadata.csv"
 
-DORIS_EXPORT_ENCODING = 'windows-1252'
+DORIS_EXPORT_ENCODING = 'iso-8859-1'
 
 BEGINDATUM_DORIS_REFERENTIES = datetime.date(1992, 12, 31)
 BEGINDATUM_NIEUWSBERICHTEN = datetime.date(2006, 2, 10)
