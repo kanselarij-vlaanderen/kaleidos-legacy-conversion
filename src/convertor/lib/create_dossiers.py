@@ -19,7 +19,7 @@ def create_dossiers(agendas):
                 dossiernr = dossiernr_doc_name.dossier_nr
                 dossier_key = tuple((year, dossiernr))
             except StopIteration: # No document that contains a dossiernummer in this agendapunt
-                logging.warning("No dossiernr found for agenda item {}".format(agendapunt))
+                logging.info("No dossiernr found for agenda item {}".format(agendapunt))
                 dossiernr = None
                 dossier_key = str(uuid.uuid1())
             try:

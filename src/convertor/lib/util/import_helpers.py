@@ -63,7 +63,12 @@ def import_csv(path, encoding='utf-8', custom_trans={}):
                             breaker = True
                             break
                         else:
-                            logging.info("Failed parsing field \'{}\' with value \'{}\' on line {}".format(key, value, n))
+                            logstring = "Failed parsing field \'{}\' with value \'{}\' on line {}".format(key, value, n)
+                            if value:
+                                logging.info(logstring)
+                            else:
+                                logging.debug(logstring)
+                            
 
                 else:
                     row_result[key] = {'parsed': value, 'source': value, 'success': True}

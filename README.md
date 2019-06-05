@@ -20,6 +20,6 @@ docker-compose -f docker-compose.database.yml -f docker-compose.convertor.yml \
 
 Create a dump for OC: 
 ```
-docker-compose -f docker-compose.database.yml -f docker-compose.convertor.yml \
+docker-compose -f docker-compose.convertor.yml \
   exec convertor ./create_dump.sh create_oc_dump.py
 ```

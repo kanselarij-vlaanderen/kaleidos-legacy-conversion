@@ -21,7 +21,6 @@ class VersionedDocumentName(DocumentName):
         return self.name() + versie_str
 
 class VrDocumentName(VersionedDocumentName):
-    """docstring for DocumentVersion."""
     def __init__(self, context, datum, dossier_nr, doc_type='DOC', doc_nr=None):
         assert context in ('VE', 'VR')
         assert doc_type in ('DOC', 'MED', 'VAR')
@@ -43,36 +42,7 @@ class VrDocumentName(VersionedDocumentName):
                                                        self.dossier_nr,
                                                        doc_nr_str)
 
-class OcDocumentName(VersionedDocumentName):
-    """docstring for DocumentVersion."""
-    def __init__(self, context, datum, punt_nr, punt_type='DOC', doc_nr=None):
-        assert context in ('OC')
-        assert punt_type in ('PUNT', 'MEDEDELING', 'VARIA')
-        super().__init__()
-        self.context = context
-        self.datum = datum
-        self.punt_nr = punt_nr
-        self.punt_type = punt_type
-        self.doc_nr = doc_nr
-
-    def name(self):
-        """
-        "OC 20181107 PUNT 03"
-        "OC 20181107 PUNT 04"
-        "OC 20181107 PUNT 05A"
-        "OC 20181107 PUNT 05ABIS"
-        """
-        doc_nr_str = str(chr(64 + self.doc_nr)) if self.doc_nr else ''
-        return '{} {:04d}{:02d}{:02d} {} {:02d}{}'.format(self.context,
-                                                          self.datum.year,
-                                                          self.datum.month,
-                                                          self.datum.day,
-                                                          self.punt_type.upper(),
-                                                          self.punt_nr,
-                                                          doc_nr_str)
-
 class AgendaName(DocumentName):
-    """docstring for DocumentVersion."""
     def __init__(self, context, datum):
         assert context in ('VR', 'VE', 'OC')
         super().__init__()
@@ -87,7 +57,6 @@ class AgendaName(DocumentName):
                                                  self.datum.day)
 
 class VrBeslissingsficheName(VersionedDocumentName):
-    """docstring for DocumentVersion."""
     def __init__(self, context, year, zitting_nr, punt_nr=None, punt_type='PUNT'):
         assert context in ('VR', 'VE')
         assert punt_type in ('PUNT', 'MEDEDELING', 'VARIA')
@@ -107,29 +76,9 @@ class VrBeslissingsficheName(VersionedDocumentName):
                                                    self.punt_type,
                                                    punt_nr_str)
 
-class OcBeslissingsficheName(DocumentName):
-    """docstring for DocumentVersion."""
-    def __init__(self, context, datum, punt_nr, punt_type='PUNT'):
-        assert context in ('OC')
-        assert punt_type in ('PUNT', 'MEDEDELING', 'VARIA')
-        super().__init__()
-        self.context = context
-        self.datum = datum
-        self.punt_nr = punt_nr
-        self.punt_type = punt_type
-
-    def name(self):
-        """ OC 20181107 PUNT 05ATER """
-        return '{} {:04d}{:02d}{:02d} {} {:02d}'.format(self.context.upper(),
-                                                        self.datum.year,
-                                                        self.datum.month,
-                                                        self.datum.day,
-                                                        self.punt_type,
-                                                        self.punt_nr)
-
 class VrNotulenName(VersionedDocumentName):
     def __init__(self, context, jaar, zitting_nr):
-        assert context in ('VR', 'VE', 'OC')
+        assert context in ('VR', 'VE')
         super().__init__()
         self.context = context
         self.jaar = jaar
@@ -140,4 +89,70 @@ class VrNotulenName(VersionedDocumentName):
         return '{} PV {:04d}/{:02d}'.format(self.context.upper(),
                                             self.jaar,
                                             self.zitting_nr)
-            
+
+class OcDocumentName(VersionedDocumentName):
+    def __init__(self, datum, punt_nr, doc_nr=None):
+        super().__init__()
+        self.datum = datum
+        self.punt_nr = punt_nr
+        self.doc_nr = doc_nr
+
+    def name(self):
+        """
+        "OC 20181107 PUNT 03"
+        "OC 20181107 PUNT 04"
+        "OC 20181107 PUNT 05A"
+        "OC 20181107 PUNT 05ABIS"
+        """
+        doc_nr_str = str(chr(64 + self.doc_nr)) if self.doc_nr else ''
+        return 'OC {:04d}{:02d}{:02d} PUNT {:02d}{}'.format(self.datum.year,
+                                                            self.datum.month,
+                                                            self.datum.day,
+                                                            self.punt_nr,
+                                                            doc_nr_str)
+
+class OcNotulenName(DocumentName):
+    def __init__(self, datum, zitting_nr=None):
+        super().__init__()
+        self.datum = datum
+        self.zitting_nr = zitting_nr
+
+    def name(self):
+        """
+            OC 20051116 PV 13
+            OC 20170220 NOTULEN
+        """
+        ocname = 'OC {:04d}{:02d}{:02d}'.format(self.datum.year,
+                                                self.datum.month,
+                                                self.datum.day)
+        if self.zitting_nr:
+            return '{} PV {:02d}'.format(ocname,
+                                         self.zitting_nr)
+        else:
+            return '{} NOTULEN'.format(ocname)
+
+class OcAgendaName(DocumentName):
+    def __init__(self, datum, addendum_nr=None):
+        super().__init__()
+        self.datum = datum
+
+    def name(self):
+        """
+            OC 20051116 AGENDA
+        """
+        return 'OC {:04d}{:02d}{:02d} AGENDA'.format(self.datum.year,
+                                                     self.datum.month,
+                                                     self.datum.day)
+
+class OcVerslagName(DocumentName):
+    def __init__(self, datum):
+        super().__init__()
+        self.datum = datum
+
+    def name(self):
+        """
+            OC 20051116 VERSLAG
+        """
+        return 'OC {:04d}{:02d}{:02d} VERSLAG'.format(self.datum.year,
+                                                      self.datum.month,
+                                                      self.datum.day)

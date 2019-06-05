@@ -3,7 +3,7 @@
 import datetime
 import re
 
-from .model.document_name import VrDocumentName, AgendaName, VrNotulenName, VrBeslissingsficheName
+from .model.document_name import VrDocumentName, AgendaName, VrNotulenName, VrBeslissingsficheName, OcDocumentName, OcAgendaName, OcVerslagName, OcNotulenName
 from .code_lists.numbering import LATIN_ADVERBIAL_NUMERAL_2_INT
 from .code_lists.governments import REGERINGEN
 from .code_lists.doris import AARDEN_BESLISSING, TYPES_VERGADERING, TYPES_DOCUMENT, LEVENSCYCLUS_STATUSSEN
@@ -61,6 +61,19 @@ def p_number(val):
         return int(val.strip())
     except Exception as e:
         raise ValueError("Invalid number: " + str(e))
+
+def p_oc_session_number(val):
+    try:
+        return p_number(val.split('/')[-1]) # TEMP
+    except Exception as e:
+        raise ValueError("Invalid number: " + str(e))
+
+def p_administration_indiener(val):
+    indieners_in = val.replace('.', ';').replace('/', ';').replace(':', ';').replace(',', ';').replace('-', ';')
+    indieners_out = []
+    for indiener in indieners_in.split(';'):
+        indieners_out.append(indiener.strip().lstrip('de').strip())
+    return indieners_out
 
 def p_indiener_samenvatting(val):
     """ 
@@ -170,28 +183,6 @@ def p_keywords(val):
     keywords = val.replace(' ', ',').replace(';', ',').split(',')
     return tuple([kw.strip() for kw in keywords if bool(kw.strip()) is True])
 
-def p_oc_doc_name(val):
-    """ OC 20080116 PUNT 11BIS """
-    docname_match = re.match(r"(OC) (\d{4})(\d{2})(\d{2}) (PUNT) (\d{1,2})([A-Z]{3,})?$", val)
-    if not docname_match:
-        raise ValueError('\'{}\' isn\'t a valid ordinary document name'.format(val))
-    regering = docname_match.group(1).upper()
-    year = int(docname_match.group(2))
-    month = int(docname_match.group(3))
-    day = int(docname_match.group(4))
-    type = docname_match.group(5)
-    punt_nr = int(docname_match.group(6))
-    if docname_match.group(7):
-        version_like = docname_match.group(7).lower()
-        if version_like in LATIN_ADVERBIAL_NUMERAL_2_INT.keys():
-            version = LATIN_ADVERBIAL_NUMERAL_2_INT[version_like]
-        else:
-            raise ValueError('\'{}\' looks like a sub-version of a document name but isn\'t'.format(version_like))
-    else:
-        version = 1
-    date = datetime.date(year, month, day)
-    return (val, 'DOC', regering, date, type, punt_nr, version)
-
 def p_doc_name(val):
     def p_ordinary_doc(val):
         """ VR 2008 2305 MED.0223 """
@@ -262,6 +253,101 @@ def p_doc_name(val):
         pass
     raise ValueError("{} isn't a recognized value for doc_name".format(val))
 
+def p_oc_doc_name(val):
+    def p_ordinary_doc(val):
+        """
+        "OC 20181107 PUNT 03"
+        "OC 20181107 PUNT 04"
+        "OC 20181107 PUNT 05A"
+        "OC 20181107 PUNT 05ABIS"
+        """
+        docname_match = re.match(r"OC (\d{4})(\d{2})(\d{2}) PUNT (\d{2})(?:([A-Z])|((?:[A-Z]){3,}))?$", val)
+        if not docname_match:
+            raise ValueError('\'{}\' isn\'t a valid ordinary document name'.format(val))
+        year = int(docname_match.group(1))
+        month = int(docname_match.group(2))
+        day = int(docname_match.group(3))
+        date = datetime.date(year, month, day)
+        punt_nr = int(docname_match.group(4))
+        if docname_match.group(5):
+            doc_nr = ord(docname_match.group(5).lower()) - 96
+            version = None
+        elif docname_match.group(6):
+            version_like = docname_match.group(6).lower()
+            if version_like in LATIN_ADVERBIAL_NUMERAL_2_INT.keys():
+                version = LATIN_ADVERBIAL_NUMERAL_2_INT[version_like]
+                doc_nr = None
+            else:
+                try:
+                    version = LATIN_ADVERBIAL_NUMERAL_2_INT[version_like[1:]]
+                except KeyError:
+                    raise ValueError("'{}' isn't a valid latin adverbial numeral for versioning".format(version_like[1:]))
+                doc_nr = ord(version_like[0]) - 96
+        else:
+            version = None
+            doc_nr = None
+        return OcDocumentName(date, punt_nr, doc_nr), version
+
+    def p_agenda(val):
+        """ OC 20021122 AGENDA """
+        docname_match = re.match(r"OC (\d{4})(\d{2})(\d{2}) AGENDA$", val)
+        if not docname_match:
+            raise ValueError('\'{}\' isn\'t a valid agenda document name'.format(val))
+        year = int(docname_match.group(1))
+        month = int(docname_match.group(2))
+        day = int(docname_match.group(3))
+        date = datetime.date(year, month, day)
+        return OcAgendaName(date)
+
+    def p_verslag(val):
+        """ OC 20021122 VERSLAG """
+        docname_match = re.match(r"OC (\d{4})(\d{2})(\d{2}) VERSLAG$", val)
+        if not docname_match:
+            raise ValueError('\'{}\' isn\'t a valid verslag document name'.format(val))
+        year = int(docname_match.group(1))
+        month = int(docname_match.group(2))
+        day = int(docname_match.group(3))
+        date = datetime.date(year, month, day)
+        return OcVerslagName(date)
+
+    def p_notulen(val):
+        """
+            OC 20051116 PV 13
+            OC 20170220 NOTULEN
+        """
+        docname_match = re.match(r"OC (\d{4})(\d{2})(\d{2}) (?:(?:NOTULEN)|(?:PV (\d+)))$", val)
+        if not docname_match:
+            raise ValueError('\'{}\' isn\'t a valid notulen document name'.format(val))
+        year = int(docname_match.group(1))
+        month = int(docname_match.group(2))
+        day = int(docname_match.group(3))
+        date = datetime.date(year, month, day)
+        if docname_match.group(4):
+            zitting_nr = int(docname_match.group(4))
+        else:
+            zitting_nr = None
+        return OcNotulenName(date, zitting_nr)
+    
+    val = val.strip().upper()
+    try:
+        return p_ordinary_doc(val)
+    except ValueError as e:
+        pass
+    try:
+        return p_agenda(val)
+    except ValueError as e:
+        pass
+    try:
+        return p_verslag(val)
+    except ValueError as e:
+        pass
+    try:
+        return p_notulen(val)
+    except ValueError as e:
+        pass
+    # import pdb; pdb.set_trace()
+    raise ValueError("{} isn't a recognized value for doc_name".format(val))
+
 
 def p_agendapunt_name(val):
     """
@@ -291,10 +377,11 @@ def p_agendapunt_name(val):
     return VrBeslissingsficheName(context, year, verg_nummer, number, punt_type=type), version
 
 def p_doc_list(val):
-    try:
-        return tuple([p_doc_name(doc.strip()) for doc in val.replace(',', ';').split(';') if doc.strip()])
-    except Exception as e:
-        raise e
+    if not val:
+        return tuple()
+    else:
+        return tuple([doc_name.strip() for doc_name in val.replace(',', ';').split(';')])
+
 
 def p_content_type(val):
     if val in DOCUMENTUM_TYPE_2_MIMETYPE:

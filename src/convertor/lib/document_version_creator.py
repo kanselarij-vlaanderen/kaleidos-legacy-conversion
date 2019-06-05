@@ -2,7 +2,7 @@
 import itertools
 import logging
 
-from .doris_export_parsers import p_doc_name
+from .doris_export_parsers import p_doc_name, p_oc_doc_name
 from .model.document_version import DocumentVersion
 from .model.document_name import VrBeslissingsficheName, VersionedDocumentName
 from .model.agenda import Agendapunt
@@ -106,13 +106,17 @@ def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut
                 else:
                     logging.warning("Couldn't determine agenda item number from separate metadata field nor document name for document version {}".format(doc.source_name))
                 agendapunt = Agendapunt(jaar, zitting_nr, volgnr, doc)
-                agendapunt.type = agendapunt.beslissingsfiche.parsed_name.punt_type # PUNT, MEDEDELING or VARIA
+                if isinstance(doc.parsed_name, VrBeslissingsficheName):
+                    agendapunt.type = agendapunt.beslissingsfiche.parsed_name.punt_type # PUNT, MEDEDELING or VARIA
                 agendapunt.besl_vereist = doc_src['dar_besl_vereist']['parsed']
                 if doc_src['dar_rel_docs']['parsed']:
-                    for doc_ref in doc_src['dar_rel_docs']['parsed'].strip().replace(',', ';').split(';'):
+                    for doc_ref in doc_src['dar_rel_docs']['parsed']:
                         r = {'source': doc_ref}
                         try:
-                            r['parsed'] = p_doc_name(doc_ref)
+                            if doc_src['dar_context']['source'] == 'Vlaamse Regering':
+                                r['parsed'] = p_doc_name(doc_ref)
+                            elif doc_src['dar_context']['source'] == 'Overlegcomite':
+                                r['parsed'] = p_oc_doc_name(doc_ref)
                             r['success'] = True
                         except ValueError:
                             r['success'] = False

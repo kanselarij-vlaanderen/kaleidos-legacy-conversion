@@ -29,6 +29,9 @@ def find_agenda_document(agenda_documenten, date, verg_nr):
 def find_notulen_document(notulen_documenten, date, zittingnr):
     return find(notulen_documenten, lambda doc: doc.parsed_name.jaar == date.year and doc.zittingnr == zittingnr)
 
+def find_oc_notulen_document(notulen_documenten, date, zittingnr):
+    return find(notulen_documenten, lambda doc: doc.parsed_name.datum == date and (doc.zittingnr == zittingnr if doc.zittingnr else True))
+
 class Agenda:
     """docstring for Agenda."""
     def __init__(self, datum, zittingnr):
@@ -87,7 +90,10 @@ class Agenda:
         return self.agenda_doc
 
     def link_notulen_doc(self, notulen_docs):
-        notulen_doc = find_notulen_document(notulen_docs, self.datum, self.zittingnr)
+        try:
+            notulen_doc = find_notulen_document(notulen_docs, self.datum, self.zittingnr)
+        except AttributeError:
+            notulen_doc = find_oc_notulen_document(notulen_docs, self.datum, self.zittingnr)
         if notulen_doc:
             self.notulen = notulen_doc
         else:
@@ -165,7 +171,7 @@ class Agendapunt():
         if self.type == 'PUNT':
             retval = self.type + ' ' + str(self.volgnr) + '\n'
         else:
-            retval = self.type + '\n'
+            retval = str(self.type) + '\n'
         for doc in self.rel_docs:
             retval += textwrap.indent(str(doc) + '\n', '\t')
         return retval
