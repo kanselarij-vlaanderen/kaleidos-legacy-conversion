@@ -1,0 +1,25 @@
+./
+├── OC
+│   ├── dar_doris_oc_allebeslis
+│   │   ├── content
+│   │   └── metadata.csv
+│   ├── dar_doris_oc_document
+│   │   ├── content
+│   │   └── metadata.csv
+│   └── dar_doris_oc_fiche
+│       ├── content
+│       └── metadata.csv
+└── VR
+    ├── dar_doris_vr_allebeslis
+    │   ├── content
+    │   └── metadata.csv
+    ├── dar_doris_vr_document
+    │   ├── content
+    │   │   ├── 09013557800
+    │   │   ├── 09013557801
+    │   │   └── 09013557802
+    │   └── metadata.csv
+    └── dar_doris_vr_fiche
+        ├── content
+        └── metadata.csv
+
