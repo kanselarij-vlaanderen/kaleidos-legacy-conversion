@@ -50,7 +50,7 @@ custom_trans_document = {
 
 custom_trans_fiche = {
     'r_object_id': {'parser': parsers.p_object_id, 'required': True},
-    'object_name': {'parser': str, 'required': False},
+    'object_name': {'parser': parsers.p_oc_agendapunt_name, 'required': False},
     'a_content_type': {'parser': parsers.p_content_type, 'required': True},
     # 'dar_indiener_samenvatting': {'parser': parsers.p_indiener_samenvatting, 'required': False},
     'dar_restricted': {'parser': parsers.p_true_false, 'required': False},

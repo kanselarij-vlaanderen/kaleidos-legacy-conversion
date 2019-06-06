@@ -3,7 +3,7 @@
 import datetime
 import re
 
-from .model.document_name import VrDocumentName, AgendaName, VrNotulenName, VrBeslissingsficheName, OcDocumentName, OcAgendaName, OcVerslagName, OcNotulenName
+from .model.document_name import VrDocumentName, AgendaName, VrNotulenName, VrBeslissingsficheName, OcDocumentName, OcAgendaName, OcVerslagName, OcNotulenName, OcBeslissingsficheName
 from .code_lists.numbering import LATIN_ADVERBIAL_NUMERAL_2_INT
 from .code_lists.governments import REGERINGEN
 from .code_lists.doris import AARDEN_BESLISSING, TYPES_VERGADERING, TYPES_DOCUMENT, LEVENSCYCLUS_STATUSSEN
@@ -375,6 +375,28 @@ def p_agendapunt_name(val):
     else:
         version = None
     return VrBeslissingsficheName(context, year, verg_nummer, number, punt_type=type), version
+
+def p_oc_agendapunt_name(val):
+    """ OC 20060906 NOT PT 04 """
+    agendapunt_match = re.match(r"OC (\d{4})(\d{2})(\d{2}) NOT PT (\d{2})", val)
+    if not agendapunt_match:
+        raise ValueError("'{}' isn't a valid beslissingsfiche name".format(val))
+    year = int(agendapunt_match.group(1))
+    month = int(agendapunt_match.group(2))
+    day = int(agendapunt_match.group(3))
+    date = datetime.date(year, month, day)
+    number = int(agendapunt_match.group(4).strip())
+    return OcBeslissingsficheName(date, number)
+
+def p_oc_fed_doc_name(val):
+    """ 2016C96610.001 """
+    doc_matches = re.finditer(r"(\()?(\d{4}[A-Z]\d{5}.\d{3})(\))?", val)
+    names = []
+    for doc_match in doc_matches:
+        doc_name = doc_match.group(2)
+        betweenbrackets = bool(doc_match.group(1) and doc_match.group(3))
+        names.append(tuple([doc_name, betweenbrackets]))
+    return names
 
 def p_doc_list(val):
     if not val:

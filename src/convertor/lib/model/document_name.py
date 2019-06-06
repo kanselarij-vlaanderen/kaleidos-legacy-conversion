@@ -156,3 +156,17 @@ class OcVerslagName(DocumentName):
         return 'OC {:04d}{:02d}{:02d} VERSLAG'.format(self.datum.year,
                                                       self.datum.month,
                                                       self.datum.day)
+
+class OcBeslissingsficheName(DocumentName):
+    def __init__(self, date, punt_nr=None, punt_type='PUNT'):
+        super().__init__()
+        self.datum = date
+        self.punt_nr = punt_nr
+
+    def name(self):
+        """ OC 20060906 NOT PT 04 """
+        return 'OC {:04d}{:02d}{:02d} NOT PT {:02d}'.format(self.datum.year,
+                                                            self.datum.month,
+                                                            self.datum.day,
+                                                            self.punt_nr)
+

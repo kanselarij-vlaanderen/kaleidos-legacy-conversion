@@ -268,8 +268,11 @@ class Agendapunt():
             (besluit_uri, RDF['type'], ns.BESLUIT['Besluit']),
             (besluit_uri, ns.MU['uuid'], Literal(besluit_uuid)),
             (besluit_uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
-            (besluit_uri, ns.BESLUITVORMING['stuknummerVR'], Literal(self.beslissingsfiche.name)), # or self.beslissingsfiche.stuknummer()
         ]
+        try:
+            besluit_triples.append((besluit_uri, ns.BESLUITVORMING['stuknummerVR'], Literal(self.beslissingsfiche.name))) # or self.beslissingsfiche.stuknummer()
+        except AttributeError:
+            pass
         if self.beslissingsfiche.title:
             besluit_triples.append((besluit_uri, ns.ELI['title_short'], Literal(self.beslissingsfiche.title)))
         if self.beslissingsfiche.description:

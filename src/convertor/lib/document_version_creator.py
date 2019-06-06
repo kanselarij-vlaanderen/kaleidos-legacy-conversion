@@ -4,7 +4,7 @@ import logging
 
 from .doris_export_parsers import p_doc_name, p_oc_doc_name
 from .model.document_version import DocumentVersion
-from .model.document_name import VrBeslissingsficheName, VersionedDocumentName
+from .model.document_name import VrBeslissingsficheName, OcBeslissingsficheName, VersionedDocumentName
 from .model.agenda import Agendapunt
 from .create_files import create_file
 
@@ -91,6 +91,8 @@ def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut
                     jaar = doc_src['dar_date_vergadering']['parsed']
                 elif isinstance(doc.parsed_name, VrBeslissingsficheName):
                     jaar = doc.parsed_name.year
+                elif isinstance(doc.parsed_name, OcBeslissingsficheName):
+                    jaar = doc.parsed_name.datum.year
                 else:
                     logging.warning("Couldn't determine session year from separate metadata field nor document name for document version {}".format(doc.source_name))
                 if doc_src['dar_verg_nr']['success']:
@@ -101,7 +103,7 @@ def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut
                     logging.warning("Couldn't determine session number from separate metadata field nor document name for document version {}".format(doc.source_name))
                 if doc_src['dar_volgnummer']['success']:
                     volgnr = doc_src['dar_volgnummer']['parsed']
-                elif isinstance(doc.parsed_name, VrBeslissingsficheName):
+                elif isinstance(doc.parsed_name, VrBeslissingsficheName) or isinstance(doc.parsed_name, OcBeslissingsficheName):
                     volgnr = doc.parsed_name.punt_nr
                 else:
                     logging.warning("Couldn't determine agenda item number from separate metadata field nor document name for document version {}".format(doc.source_name))
