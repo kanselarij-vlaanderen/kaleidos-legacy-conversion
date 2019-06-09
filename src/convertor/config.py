@@ -7,7 +7,6 @@ LOG_LEVEL = logging.getLevelName(environ.get('LOG_LEVEL', 'INFO'))
 DORIS_EXPORT_FOLDER_PATH = environ.get('DORIS_EXPORT_FOLDER_PATH', '/data/doris')
 
 FILE_METADATA_FOLDER_PATH = environ.get('FILE_METADATA_FOLDER_PATH', '/data/tmp/file_metadata')
-FILE_MAPPING_FOLDER_PATH = environ.get('FILE_MAPPING_FOLDER_PATH', '/data/tmp/file_id2uuid_mapping')
 
 TTL_FOLDER_PATH = environ.get('TTL_FOLDER_PATH', '/output/ttl')
 LOG_FOLDER_PATH = environ.get('LOG_FOLDER_PATH', '/output/log')
@@ -26,7 +25,11 @@ GRAPH_NAME = 'http://mu.semte.ch/graphs/public'
 KALEIDOS_SHARE_EXPORT_SUBFOLDER = '' # Subfolder within the share folder where the export files folder will be located
 
 
+FILE_MAPPING_FOLDER_PATH = environ.get('FILE_MAPPING_FOLDER_PATH', '/data/tmp/file_id2uuid_mapping')
+
 THEME_MAPPING_FILE_PATH = "/data/tmp/theme_id2uuid_mapping.json"
+
+SUBMITTER_MAPPING_FILE_PATH = "/data/tmp/submitter_ref2uuid_mapping.json"
 
 # PRIVATE
 ####################################################################################################

@@ -14,7 +14,7 @@ from lib.model.document_name import DocumentName, OcDocumentName, OcAgendaName, 
 from lib.document_version_creator import create_files_document_versions_agenda_items, group_doc_vers_by_source_name, group_doc_vers_by_parsed_name, group_doc_vers_by_object_id
 
 from lib.create_agendas import create_agendas
-from lib.create_mandatees import create_persons_mandatees_mandates, mandatees_by_period_by_src
+from lib.create_submitters import load_submitter_mapping, create_submitters_by_ref
 from lib.search import find_agenda_document, find_notulen_document, find_agenda
 
 from lib.create_news_items import create_news_items, group_news_items_by_agenda_date
@@ -24,7 +24,7 @@ from lib.create_files import load_file_mapping
 
 from lib.create_document_types import create_document_types
 from lib.create_dossiers import create_dossiers
-from lib.create_governments import create_governments
+from lib.create_administrations import create_administrations
 from load_file_metadata import load_file_metadata
 
 ###########################################################
@@ -52,6 +52,7 @@ parsed_fiche_source = import_csv(config.EXPORT_FILES['OC']['fiche'],
 
 theme_uuid_lut = load_theme_mapping(config.THEME_MAPPING_FILE_PATH)
 
+submitter_uuid_lut = load_submitter_mapping(config.SUBMITTER_MAPPING_FILE_PATH)
 
 ###########################################################
 # CONVERT TO OBJECT MODEL
@@ -70,10 +71,6 @@ unparsed_doc_vers = list(filter(lambda d: d.parsed_name is None, document_versio
 
 
 agendas = create_agendas(agenda_items)
-
-governments = create_governments()
-
-# roles = create_roles()
 
 doc_types_by_label = create_document_types()
 
@@ -122,17 +119,26 @@ for agenda in agendas:
             if agenda.datum and (agenda.datum > config.BEGINDATUM_DORIS_REFERENTIES):
                 total_rel_docs += len(ap._document_refs)
                 found_rel_docs += len(ap.rel_docs)
-
+    print(agenda)
 
 logging.info("Found {} out of {} documents ({:.1f}%) referenced in {} agendapoints".format(found_rel_docs, total_rel_docs, found_rel_docs/total_rel_docs*100, i))
 
+
 dossiers_by_year_dossiernr = create_dossiers(agendas) # Requires agendapunt.rel_docs to be linked
+
+administrations = create_administrations()
+
+submitters_lut, persons = create_submitters_by_ref(agendas, administrations, submitter_uuid_lut)
+import pdb; pdb.set_trace()
+for s in submitters_lut.values():
+    print(s)
+import pdb; pdb.set_trace()
 
 for agenda in agendas:
     for ap in agenda.agendapunten:
-        ap.beslissingsfiche.link_indiener_refs(mandatees_lut, governments)
+        ap.beslissingsfiche.link_indiener_refs(submitters_lut, administrations)
         for rel_doc in ap.rel_docs:
-            ap.beslissingsfiche.link_indiener_refs(mandatees_lut, governments)
+            ap.beslissingsfiche.link_indiener_refs(submitters_lut, administrations)
 
 
 if __name__ == "__main__":

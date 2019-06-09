@@ -5,41 +5,6 @@ import uuid
 from rdflib.namespace import RDF, XSD
 from rdflib import URIRef, Literal
 
-class Mandate:
-    def __init__(self, role_ref):
-        super().__init__()
-        self.uuid = str(uuid.uuid1())
-        self.src_id = None
-
-        self.role_ref = role_ref
-        self.role = None
-
-    def __str__(self):
-        return "Mandaat van {}".format(self.role.label)
-
-    def src_uri(self, src_base_uri):
-        return src_base_uri + "node" + "/{}".format(self.src_id)
-
-    def uri(self, base_uri):
-        return base_uri + "id/mandaten" + "/{}".format(self.uuid)
-
-    def materializeRoleRef(self, role_lut, key_fun):
-        if self.role_ref:
-            try:
-                self.role = role_lut[key_fun(self.role_ref)]
-            except KeyError:
-                logging.warning('No match found for \'role ref\' {}'.format(self.role_ref))
-
-    def triples(self, ns, base_uri, src_base_uri):
-        uri = URIRef(self.uri(base_uri))
-        triples = [
-            (uri, RDF['type'], ns.MANDAAT['Mandaat']),
-            (uri, ns.MU['uuid'], Literal(self.uuid)),
-            (uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
-            (uri, ns.ORG['role'], URIRef(self.role.uri(base_uri)))
-        ]
-        return triples
-
 class Mandatee:
     def __init__(self, person, start_date, end_date=None):
         super().__init__()
@@ -51,7 +16,7 @@ class Mandatee:
         self.end_date = end_date
         self.official_title = None
         self.order = None
-        self.mandate = None
+        self.mandate_uri = None
         self.policy_domains = []
 
     def __str__(self):
@@ -67,9 +32,6 @@ class Mandatee:
     def uri(self, base_uri):
         return base_uri + "id/mandatarissen" + "/{}".format(self.uuid)
 
-    def mandate_uri(self, base_uri):
-        return base_uri + "id/mandaten" + "/{}".format(self.mandate_uuid)
-
     def is_active(self):
         return bool(self.end_date)
 
@@ -80,7 +42,7 @@ class Mandatee:
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
             (uri, ns.MANDAAT['start'], Literal(self.start_date.isoformat(), datatype=XSD.date)),
-            (uri, ns.ORG['holds'], URIRef(self.mandate_uri(base_uri))),
+            (uri, ns.ORG['holds'], URIRef(self.mandate_uri)),
             (uri, ns.MANDAAT['isBestuurlijkeAliasVan'], URIRef(self.person.uri(base_uri))),
         ]
         if self.end_date:

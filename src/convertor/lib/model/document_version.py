@@ -79,18 +79,21 @@ class DocumentVersion:
                         logging.warning('No match found for \'related\' doc {}'.format(rel_doc['source']))
         return self.vorige
 
-    def link_indiener_refs(self, mandatee_lut, governments):
-        """ mandatee_lut takes keys of form (government, (first_name, last_name, title))"""
+    def link_indiener_refs(self, submitter_lut, governments):
+        """ mandatee_lut takes keys of form str(ref)+gov.uuid (for mandatees) or str(ref) (for governing bodies)"""
         if self._indiener_refs:
             gov = search_government(governments, self.zittingdatum)
-            if gov:
-                self.indieners = []
-                indiener_refs = filter(lambda ref: isinstance(ref, tuple), self._indiener_refs)
-                for indiener in indiener_refs:
+            self.indieners = []
+            for indiener in self._indiener_refs:
+                if gov:
                     try:
-                        self.indieners.append(mandatee_lut[(gov.installation_date, gov.resignation_date, indiener)])
+                        self.indieners.append(submitter_lut[str(indiener)+gov.uuid])
                     except KeyError:
-                        logging.warning("No match found for indiener reference '{}'".format(indiener))
+                        pass
+                try:
+                    self.indieners.append(submitter_lut[str(indiener)])
+                except KeyError:
+                    logging.warning("No match found for indiener reference '{}'".format(indiener))
         return self.indieners
 
     def link_type_refs(self, document_type_lut):

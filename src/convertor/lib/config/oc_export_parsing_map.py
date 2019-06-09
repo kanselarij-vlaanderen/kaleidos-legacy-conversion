@@ -17,7 +17,7 @@ custom_trans_document = {
     'object_name': {'parser': parsers.p_oc_doc_name, 'required': False},
     'a_content_type': {'parser': parsers.p_content_type, 'required': True},
     # 'dar_update': {'parser': parsers.p_true_false, 'required': False}, # Wordt niet gebruikt
-    'dar_indiener_samenvatting': {'parser': parsers.p_administration_indiener, 'required': False},
+    'dar_indiener_samenvatting': {'parser': parsers.p_indiener_samenvatting, 'required': False},
     # 'dar_vervangt': {'parser': parsers.p_doc_name, 'required': False}, # Werd vroeger gebruikt, 'required': False}, nu niet meer
     'dar_restricted': {'parser': parsers.p_true_false, 'required': False},
     # 'dar_err_date': {'parser': parsers.p_keyed_dates, 'required': False},
@@ -52,7 +52,7 @@ custom_trans_fiche = {
     'r_object_id': {'parser': parsers.p_object_id, 'required': True},
     'object_name': {'parser': parsers.p_oc_agendapunt_name, 'required': False},
     'a_content_type': {'parser': parsers.p_content_type, 'required': True},
-    # 'dar_indiener_samenvatting': {'parser': parsers.p_indiener_samenvatting, 'required': False},
+    'dar_indiener_samenvatting': {'parser': parsers.p_indiener_samenvatting, 'required': False},
     'dar_restricted': {'parser': parsers.p_true_false, 'required': False},
     'dar_err_date': {'parser': parsers.p_keyed_dates, 'required': False},
     'dar_rel_docs': {'parser': lambda r: parsers.p_doc_list(r.upper()), 'required': False}, # List gets parsed later on

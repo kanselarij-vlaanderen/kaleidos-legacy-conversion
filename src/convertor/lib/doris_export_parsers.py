@@ -68,93 +68,78 @@ def p_oc_session_number(val):
     except Exception as e:
         raise ValueError("Invalid number: " + str(e))
 
-def p_administration_indiener(val):
-    indieners_in = val.replace('.', ';').replace('/', ';').replace(':', ';').replace(',', ';').replace('-', ';')
-    indieners_out = []
-    for indiener in indieners_in.split(';'):
-        indieners_out.append(indiener.strip().lstrip('de').strip())
-    return indieners_out
-
-def p_indiener_samenvatting(val):
-    """ 
-    "nieuwe stijl": BOURGEOIS Geert - VM van Bestuurszaken, Buitenlands Beleid, Media en Toerisme;CEYSENS Patricia - VM van Economie, Ondernemen, Wetenschap, Innovatie en Buitenlandse Handel 
-    "Oude stijl" (tot 2004): Sannen, Byttebier, Ceysens - VM Leefmilieu, Landbouw en Ontwikkelingssamenwerking. VM Welzijn, Gezondheid en Gelijke Kansen. VM Economie, Buitenlands Beleid # TODO: 
+def p_ministers_old_style(val):
     """
-
-    # Vlaamse regering 'old style'
-    def p_old_style(val):
-        if ';' in val: raise ValueError("Indieners contains ';' cannot be old-style indiener_samenvatting")
-        names, many_titles = val.rsplit(' - ', 1)
-        names, many_titles = names.split(','), many_titles.strip().strip('.').split('.')
-        if len(names) != len(many_titles): raise ValueError("Not as many names as titles for old-style indiener_samenvatting") # Cannot be old style
-        indieners_ret = []
-        for name, title in zip(names, many_titles):
+    "Oude stijl" (tot 2004): Sannen, Byttebier, Ceysens - VM Leefmilieu, Landbouw en Ontwikkelingssamenwerking. VM Welzijn, Gezondheid en Gelijke Kansen. VM Economie, Buitenlands Beleid
+    """
+    if ';' in val: raise ValueError("Indieners contains ';' cannot be old-style indiener_samenvatting")
+    names, many_titles = val.rsplit(' - ', 1)
+    names, split_many_titles = names.split(','), many_titles.strip().strip('.').split('.')
+    indieners_ret = []
+    if len(names) == len(split_many_titles):
+        for name, title in zip(names, split_many_titles):
             given_name, family_name = None, name.strip()
             title = title.strip()
             indieners_ret.append((given_name, family_name, title))
-        return tuple(indieners_ret)
+    elif (len(names) == 1) and (len(names) < len(split_many_titles)):
+        given_name, family_name = None, names[0].strip()
+        title = many_titles.strip()
+        indieners_ret.append((given_name, family_name, title))
+    else:
+        raise ValueError("Not as many names as titles for old-style indiener_samenvatting") # Cannot be old style
+    return tuple(indieners_ret)
 
-    # Vlaamse regering 'new style'
-    def p_new_style(indiener):
-        if indiener == ' - ': raise ValueError("'{}' isn't a recognized value for indiener_samenvatting".format(val))
-        # if len(indiener.split(' - ')) > 2: raise ValueError() # Cannot be new style
-        fullname, title = indiener.rsplit(' - ', 1)
-        given_name_parts, family_name_parts = [], []
-        hasupperpart = False
-        for name_part in fullname.strip().split(' '):
-            if name_part.isupper():
-                hasupperpart = True
-                family_name_parts.append(name_part.strip().title())
-            else:
-                given_name_parts.append(name_part.strip())
-        if not hasupperpart:
-            raise ValueError("Name doesn't contain upper case part ... can't be new style indiener")
-        if family_name_parts:
-            given_name, family_name = ' '.join(given_name_parts), ' '.join(family_name_parts)
-        else: # If only camel case words in full name, we assume no given name was written
-            given_name, family_name = None, ' '.join(given_name_parts)
-        if title.strip():
-            title = title.strip()
+def p_minister_new_style(indiener):
+    """
+    "nieuwe stijl": BOURGEOIS Geert - VM van Bestuurszaken, Buitenlands Beleid, Media en Toerisme;...
+    """
+    if indiener == ' - ': raise ValueError("'{}' isn't a recognized value for indiener_samenvatting".format(indiener))
+    # if len(indiener.split(' - ')) > 2: raise ValueError() # Cannot be new style
+    fullname, title = indiener.rsplit(' - ', 1)
+    given_name_parts, family_name_parts = [], []
+    hasupperpart = False
+    for name_part in fullname.strip().split(' '):
+        if name_part.isupper():
+            hasupperpart = True
+            family_name_parts.append(name_part.strip().title())
         else:
-            title = None
-        return given_name.strip(), family_name.strip(), title.strip()
+            given_name_parts.append(name_part.strip())
+    if not hasupperpart:
+        raise ValueError("Name doesn't contain upper case part ... can't be new style indiener")
+    if family_name_parts:
+        given_name, family_name = ' '.join(given_name_parts), ' '.join(family_name_parts)
+    else: # If only camel case words in full name, we assume no given name was written
+        given_name, family_name = None, ' '.join(given_name_parts)
+    if title.strip():
+        title = title.strip()
+    else:
+        title = None
+    return given_name.strip(), family_name.strip(), title.strip()
 
-    try:
-        val = val.strip()
-        if not val:
-            raise ValueError("Empty string isn't a recognized value for indiener_samenvatting")
-        # Vlaamse regering / Overlegcomité
-        elif val.strip(".").lower() == "nationale regering":
-            return "Federale Regering"
-        elif val.strip(".") in REGERINGEN:
-            return tuple(val.strip("."))
-        elif ';' in val:
-            parsed_indieners =[]
-            indieners = val.split(';')
-            for indiener in indieners:
-                try:
-                    parsed_indieners.append(p_new_style(indiener))
-                except Exception:
-                    try:
-                        parsed_indieners += list(p_old_style(indiener))
-                    except Exception:
-                        continue
-            if len(parsed_indieners):
-                return tuple(parsed_indieners)
-            else:
-                raise ValueError("'{}' isn't a recognized value for indiener_samenvatting".format(val))
-        else:
+def p_indiener_samenvatting(val):
+    # val = re.sub(r'\s{2,}', ' ', val).strip()
+    val = val.strip()
+    if not val:
+        raise ValueError("Empty string isn't a recognized value for indiener_samenvatting")
+    parsed_indieners = []
+    indieners = val.split(';')
+    for indiener in indieners:
+        if '-' in indiener:
             try:
-                return tuple([p_new_style(val)])
-            except Exception:
+                parsed_indieners.append(p_minister_new_style(indiener))
+            except Exception as e:
                 try:
-                    return tuple(p_old_style(val))
-                except Exception:
-                    pass
-        # import pdb; pdb.set_trace()
-        raise ValueError("{} isn't a recognized value for indiener_samenvatting".format(val))
-    except Exception as e:
-        raise ValueError(e)
+                    parsed_indieners += p_ministers_old_style(indiener)
+                except Exception as e:
+                    # import pdb; pdb.set_trace()
+                    if len(indieners) == 1:
+                        raise e
+                    else:
+                        continue
+            # parsed_indieners.append(indiener)
+        else:
+            parsed_indieners += list(map(str.strip, indiener.replace('/', ';').replace('.', ';').replace(',', ';').replace(':', ';').split(';')))
+    return parsed_indieners
 
 def p_aard(val):
     for aard in AARDEN_BESLISSING:

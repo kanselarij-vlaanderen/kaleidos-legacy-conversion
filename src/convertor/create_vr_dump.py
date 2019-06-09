@@ -14,7 +14,7 @@ from lib.model.document_name import DocumentName, AgendaName, VrBeslissingsfiche
 from lib.document_version_creator import create_files_document_versions_agenda_items, group_doc_vers_by_source_name, group_doc_vers_by_parsed_name, group_doc_vers_by_object_id
 
 from lib.create_agendas import create_agendas
-from lib.create_mandatees import create_persons_mandatees_mandates, mandatees_by_period_by_src
+from lib.create_submitters import load_submitter_mapping, create_submitters_by_ref
 from lib.search import find_agenda_document, find_notulen_document, find_agenda
 
 from lib.create_news_items import create_news_items, group_news_items_by_agenda_date
@@ -24,7 +24,7 @@ from lib.create_files import load_file_mapping
 
 from lib.create_document_types import create_document_types
 from lib.create_dossiers import create_dossiers
-from lib.create_governments import create_governments
+from lib.create_administrations import create_administrations
 from load_file_metadata import load_file_metadata
 
 ###########################################################
@@ -52,6 +52,7 @@ parsed_fiche_source = import_csv(config.EXPORT_FILES['VR']['fiche'],
 
 theme_uuid_lut = load_theme_mapping(config.THEME_MAPPING_FILE_PATH)
 
+submitter_uuid_lut = load_submitter_mapping(config.SUBMITTER_MAPPING_FILE_PATH)
 
 ###########################################################
 # CONVERT TO OBJECT MODEL
@@ -74,10 +75,6 @@ agendas = create_agendas(agenda_items)
 news_items = create_news_items(config.NIEUWSBERICHTEN_DB_CONFIG)
 
 themes = create_themes(config.NIEUWSBERICHTEN_DB_CONFIG, theme_uuid_lut)
-
-governments = create_governments()
-
-# roles = create_roles()
 
 doc_types_by_label = create_document_types()
 
@@ -144,18 +141,19 @@ for agenda in agendas:
 logging.info("Found {} out of {} documents ({:.1f}%) referenced in {} agendapoints".format(found_rel_docs, total_rel_docs, found_rel_docs/total_rel_docs*100, i))
 logging.info("Found {} out of {} expected news items ({:.1f}%) for {} agendapoints".format(found_nis, expected_nis, found_nis/expected_nis*100, i))
 
-persons, mandatees, mandates = create_persons_mandatees_mandates(agendas, governments) # Requires agendapunt.rel_docs to be linked
-mandatees_lut = mandatees_by_period_by_src(mandatees)
-
 dossiers_by_year_dossiernr = create_dossiers(agendas) # Requires agendapunt.rel_docs to be linked
+
+administrations = create_administrations()
+
+submitters_lut, persons = create_submitters_by_ref(agendas, administrations, submitter_uuid_lut)
 
 for agenda in agendas:
     for ap in agenda.agendapunten:
         # Link subcases
         ap.link_subcase_refs(dossiers_by_year_dossiernr, config.KALEIDOS_API_URI) # Needs dossiers
-        ap.beslissingsfiche.link_indiener_refs(mandatees_lut, governments)
+        ap.beslissingsfiche.link_indiener_refs(submitters_lut, administrations)
         for rel_doc in ap.rel_docs:
-            ap.beslissingsfiche.link_indiener_refs(mandatees_lut, governments)
+            ap.beslissingsfiche.link_indiener_refs(submitters_lut, administrations)
 
 
 if __name__ == "__main__":
@@ -184,26 +182,17 @@ if __name__ == "__main__":
         for triple in news_item.triples(ns, config.KALEIDOS_API_URI, config.NIEUWSBERICHTEN_EXPORT_URI):
             g.add(triple)
 
-    for theme in themes:
-        if theme.deprecated: # Code list for themes exists. Only dump deprecated ones.
-            for triple in theme.triples(ns, config.KALEIDOS_API_URI, config.NIEUWSBERICHTEN_EXPORT_URI):
-                g.add(triple)
+    for theme in filter(lambda t: t.deprecated, themes): # Code list for themes exists. Only dump deprecated (odd, unknown) ones.
+        for triple in theme.triples(ns, config.KALEIDOS_API_URI, config.NIEUWSBERICHTEN_EXPORT_URI):
+            g.add(triple)
 
     for person in persons:
         for triple in person.triples(ns, config.KALEIDOS_API_URI, config.DORIS_EXPORT_URI):
             g.add(triple)
 
-    for mandatee in mandatees:
-        for triple in mandatee.triples(ns, config.KALEIDOS_API_URI, config.DORIS_EXPORT_URI):
+    for submitter in filter(lambda s: s.deprecated, submitters_lut.values()):  # Code list for government body submitters exists. Only dump deprecated (odd, unknown) ones.
+        for triple in submitter.triples(ns, config.KALEIDOS_API_URI, config.DORIS_EXPORT_URI):
             g.add(triple)
 
-    # for mandate in mandates:
-    #     for triple in mandate.triples(ns, config.KALEIDOS_API_URI, config.NIEUWSBERICHTEN_EXPORT_URI):
-    #         g.add(triple)
-    # 
-    # for role in roles:
-    #     for triple in role.triples(ns, config.KALEIDOS_API_URI):
-    #         g.add(triple)
-    
     filename = 'kaleidos_vr.ttl'
     g.serialize(format='turtle', destination=os.path.join(config.TTL_FOLDER_PATH, filename))
