@@ -63,8 +63,8 @@ def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut
         doc.title = title_from_dar_onderwerp(doc_src['dar_onderwerp']['parsed']) if doc_src['dar_onderwerp']['success'] and doc_src['dar_onderwerp']['parsed'] else None
         doc.description = description_from_dar_onderwerp(doc_src['dar_onderwerp']['parsed']) if doc_src['dar_onderwerp']['success'] and doc_src['dar_onderwerp']['parsed'] else None
         doc._indiener_refs = doc_src['dar_indiener_samenvatting']['parsed'] if doc_src['dar_indiener_samenvatting']['success'] else []
-        if doc_src['dar_vorige']['source'].strip():
-            for doc_ref in doc_src['dar_vorige']['source'].strip().replace(',', ';').split(';'):
+        if doc_src['dar_vorige']['success']:
+            for doc_ref in doc_src['dar_vorige']['parsed']:
                 r = {'source': doc_ref}
                 try:
                     r['parsed'] = p_doc_name(doc_ref)
@@ -111,7 +111,7 @@ def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut
                 if isinstance(doc.parsed_name, VrBeslissingsficheName):
                     agendapunt.type = agendapunt.beslissingsfiche.parsed_name.punt_type # PUNT, MEDEDELING or VARIA
                 agendapunt.besl_vereist = doc_src['dar_besl_vereist']['parsed']
-                if doc_src['dar_rel_docs']['parsed']:
+                if doc_src['dar_rel_docs']['success']:
                     for doc_ref in doc_src['dar_rel_docs']['parsed']:
                         r = {'source': doc_ref}
                         try:

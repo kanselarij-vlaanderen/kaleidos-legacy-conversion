@@ -70,13 +70,17 @@ class DocumentVersion:
                     self.vorige.append(doc_lut[rel_doc['source']][0]) # TEMP: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
                 except KeyError as e:
                     try:
-                        logging.info('No match found by literal \'dar_rel_docs\'-key {}, trying search by properties'.format(rel_doc['source']))
+                        logging.info("No match found by source doc name ref '{}', trying search by parsed name ...".format(rel_doc['source']))
                         if rel_doc['success']:
-                            self.vorige.append(fallback_doc_lut[rel_doc['parsed']][0]) # TEMP: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
+                            try:
+                                name = rel_doc['parsed'][0].versioned_name(rel_doc['parsed'][1])
+                            except TypeError:
+                                name = rel_doc['parsed'].name()
+                            self.vorige.append(fallback_doc_lut[name][0]) # TEMP: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
                         else:
-                            logging.warning('Related doc {} doesn\'t have parsed parts'.format(rel_doc['source']))
+                            logging.info("Related doc {} doesn't have a parsed name".format(rel_doc['source']))
                     except KeyError as e:
-                        logging.warning('No match found for \'related\' doc {}'.format(rel_doc['source']))
+                        logging.warning("No match found for related doc '{}''".format(rel_doc['source']))
         return self.vorige
 
     def link_indiener_refs(self, submitter_lut, governments):

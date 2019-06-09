@@ -28,7 +28,7 @@ custom_trans_document = {
     'dar_levenscyclus_status': {'parser': parsers.p_lifecycle_state, 'required': False},
     # 'dar_besl_vereist': {'parser': parsers.p_true_false, 'required': False}, # Wordt niet gebruikt
     # 'dar_onderwerp': {'parser': , 'required': False},
-    # 'dar_vorige': {'parser': parsers.p_doc_list, 'required': False}, # List gets parsed later on
+    'dar_vorige': {'parser': parsers.p_doc_list, 'required': False},
     'dar_date_vergadering': {'parser': parsers.p_datetime, 'required': False},
     # 'dar_verg_type':, 'required': False}, # Wordt niet gebruikt
     'dar_restricted_tmp': {'parser': parsers.p_true_false, 'required': False}, # Always False?
@@ -55,13 +55,13 @@ custom_trans_fiche = {
     'dar_indiener_samenvatting': {'parser': parsers.p_indiener_samenvatting, 'required': False},
     'dar_restricted': {'parser': parsers.p_true_false, 'required': False},
     'dar_err_date': {'parser': parsers.p_keyed_dates, 'required': False},
-    # 'dar_rel_docs': {'parser': parsers.p_doc_list, 'required': False}, # List gets parsed later on
+    'dar_rel_docs': {'parser': parsers.p_doc_list, 'required': False},
     'dar_verg_nr': {'parser': parsers.p_number, 'required': True},
     'dar_volgnummer': {'parser': parsers.p_number, 'required': False},
     'dar_levenscyclus_status': {'parser': parsers.p_lifecycle_state, 'required': False},
     # 'dar_besl_vereist': {'parser': parsers.p_true_false, 'required': False}, # Wordt niet gebruikt
     # 'dar_onderwerp': {'parser': , 'required': False},
-    # 'dar_vorige': {'parser': parsers.p_doc_list, 'required': False}, # List gets parsed later on
+    'dar_vorige': {'parser': parsers.p_doc_list, 'required': False},
     'dar_date_vergadering': {'parser': parsers.p_datetime, 'required': False},
     # 'dar_verg_type': {'parser': parsers.p_verg_type, 'required': False}, # Werd vroeger gebruikt, 'required': False}, nu niet meer
     'dar_restricted_tmp': {'parser': parsers.p_true_false, 'required': False},
