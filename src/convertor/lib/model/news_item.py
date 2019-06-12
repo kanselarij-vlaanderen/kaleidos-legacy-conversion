@@ -33,7 +33,7 @@ class Theme:
             (uri, ns.SKOS['topConceptOf'], ns.EXT['ThemaCode']),
         ]
         if self.deprecated:
-            triples.append((uri, ns.OWL['deprecated'], Literal(self.deprecated, datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))))
+            triples.append((uri, ns.OWL['deprecated'], Literal(str(self.deprecated).lower(), datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))))
 
         return triples
 
@@ -113,6 +113,7 @@ class NewsItem:
             (uri, ns.DCT['title'], Literal(self.title)),
             (uri, ns.BESLUITVORMING['inhoud'], Literal(self.plaintext_body)),
             (uri, ns.EXT['htmlInhoud'], Literal(self.structuredtext_body)),
+            (uri, ns.EXT['afgewerkt'], Literal(str(self.public).lower(), datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
             # (uri, ns.DBPEDIA['subtitle'], Literal(self.title)), # don't have
         ]
         if self.public and self.date_published: # FIXME: are not effective, but planned dates in legacy data
