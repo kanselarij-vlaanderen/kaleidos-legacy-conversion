@@ -19,6 +19,7 @@ class Mandatee:
         self.mandate_uri = None
         self.policy_domains = []
 
+        self.deprecated = False
     def __str__(self):
         return "{} ({} - {}) uuid {}: {}".format(str(self.person),
                                                  self.start_date,
@@ -49,6 +50,8 @@ class Mandatee:
             triples.append((uri, ns.MANDAAT['einde'], Literal(self.end_date.isoformat(), datatype=XSD.date)))
         if self.official_title:
             triples.append((uri, ns.DCT['title'], Literal(self.official_title)))
+        if self.deprecated:
+            triples.append((uri, ns.OWL['deprecated'], Literal(str(self.deprecated).lower(), datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))))
 
         return triples
 

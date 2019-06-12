@@ -66,6 +66,8 @@ def create_submitters_by_ref(agendas, administrations, submitter_uuid_lut):
                             mandatee = Mandatee(person, gov.installation_date)
                             if ref in submitter_uuid_lut:
                                 mandatee.uuid = submitter_uuid_lut[ref]
+                            else:
+                                mandatee.deprecated = True
                             mandatee.src_uri = rel_doc.src_uri
                             mandatees.append(mandatee)
                             gov.mandatees.append(mandatee)

@@ -29,7 +29,7 @@ class GoverningBody:
     def uri(self, base_uri):
         return base_uri + "id/bestuursorganen" + "/{}".format(self.uuid)
 
-    def triples(self, ns, base_uri):
+    def triples(self, ns, base_uri, src_base_uri=None):
         uri = URIRef(self.uri(base_uri))
         triples = [
             (uri, RDF['type'], ns.BESLUIT['Bestuursorgaan']),
