@@ -333,11 +333,11 @@ class Agendapunt():
         elif self.type == 'VARIA': # TODO
             triples += [
                 (uri, RDF['type'], ns.BESLUIT['Agendapunt']),
-                (uri, ns.EXT['wordtGetoondAlsMededeling'], Literal(True, datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+                (uri, ns.EXT['wordtGetoondAlsMededeling'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
             ]
         triples += [
             (uri, ns.EXT['prioriteit'], Literal(self.volgnr)),
-            (uri, ns.BESLUITVORMING['formeelOK'], Literal(True, datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+            (uri, ns.BESLUITVORMING['formeelOK'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
             # ext:wordtGetoondAlsMededeling see above
             # (uri, ns.EXT['heeftVerdaagd'], URIRef()), # Can't do, no data
             (uri, ns.EXT['agendapuntHeeftBesluit'], besluit_uri),
