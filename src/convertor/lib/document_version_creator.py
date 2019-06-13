@@ -8,34 +8,24 @@ from .model.document_name import VrBeslissingsficheName, OcBeslissingsficheName,
 from .model.agenda import Agendapunt
 from .create_files import create_file
 
-def title_from_dar_onderwerp(dar_onderwerp):
+def titles_from_dar_onderwerp(dar_onderwerp):
+    """ returns tuple of forn (short_title, title) """
     try:
         lines = dar_onderwerp.splitlines()
     except AttributeError:
-        return None
+        return None, None
     n_lines = len(lines)
-    if lines[-1] == '':
+    if lines and lines[-1] == '':
         n_lines -= 1
-    if n_lines > 1 and not lines[0].startswith(('-', 'A.', 'A ', 'A)')):
-        return lines[0].strip()
-    return None
-
-def description_from_dar_onderwerp(dar_onderwerp):
-    try:
-        lines = dar_onderwerp.splitlines()
-    except AttributeError:
-        return None
-    n_lines = len(lines)
-    if lines[-1] == '':
-        n_lines -= 1
-    if n_lines > 1:
+    if n_lines == 1:
+        return None, lines[0].strip()
+    elif n_lines > 1:
         if lines[0].startswith(('-', 'A.', 'A ', 'A)')):
-            return '\n'.join(lines).rstrip()
+            return None, '\n'.join(lines).rstrip()
         else:
-            return '\n'.join(lines[1:]).rstrip()
-    elif n_lines == 1:
-        return lines[0].strip()
-    return None
+            return lines[0].strip(), '\n'.join(lines[1:]).rstrip()
+    else:
+        return None, None
 
 def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut, file_uuid_lut=None):
     files = []
@@ -60,8 +50,7 @@ def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut
         doc.besl_vereist = doc_src['dar_besl_vereist']['parsed']
         doc.levenscyclus_status = doc_src['dar_levenscyclus_status']['parsed'] if doc_src['dar_levenscyclus_status']['success'] else None
         doc.pub_dates = doc_src['dar_pub_date']['parsed'] if doc_src['dar_pub_date']['success'] else None
-        doc.title = title_from_dar_onderwerp(doc_src['dar_onderwerp']['parsed']) if doc_src['dar_onderwerp']['success'] and doc_src['dar_onderwerp']['parsed'] else None
-        doc.description = description_from_dar_onderwerp(doc_src['dar_onderwerp']['parsed']) if doc_src['dar_onderwerp']['success'] and doc_src['dar_onderwerp']['parsed'] else None
+        doc.short_title, doc.title = titles_from_dar_onderwerp(doc_src['dar_onderwerp']['parsed']) if doc_src['dar_onderwerp']['success'] else tuple(None, None)
         doc._indiener_refs = doc_src['dar_indiener_samenvatting']['parsed'] if doc_src['dar_indiener_samenvatting']['success'] else []
         if doc_src['dar_vorige']['success']:
             for doc_ref in doc_src['dar_vorige']['parsed']:

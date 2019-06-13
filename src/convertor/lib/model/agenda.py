@@ -186,6 +186,10 @@ class Agendapunt():
                 title = 'VARIA'
         return title
 
+    @property
+    def short_title(self):
+        return self.beslissingsfiche.short_title
+
     def link_document_refs(self, doc_lut, fallback_doc_lut):
         if self._document_refs:
             self.rel_docs = []
@@ -273,10 +277,8 @@ class Agendapunt():
             besluit_triples.append((besluit_uri, ns.BESLUITVORMING['stuknummerVR'], Literal(self.beslissingsfiche.name))) # or self.beslissingsfiche.stuknummer()
         except AttributeError:
             pass
-        if self.beslissingsfiche.title:
-            besluit_triples.append((besluit_uri, ns.ELI['title_short'], Literal(self.beslissingsfiche.title)))
-        if self.beslissingsfiche.description:
-            besluit_triples.append((besluit_uri, ns.ELI['description'], Literal(self.beslissingsfiche.description)))
+        if self.short_title:
+            besluit_triples.append((besluit_uri, ns.ELI['title_short'], Literal(self.short_title)))
         for pub in self.publicaties:
             besluit_triples.append((besluit_uri, ns.BESLUITVORMING['isGerealiseerdDoor'], URIRef(pub.uri(base_uri))))
 
@@ -294,8 +296,10 @@ class Agendapunt():
             # besluitvorming:isAangevraagdVoor via Agenda
             # besluitvorming:vertrouwelijkheid TODO, wordt een bool?
         ]
-        if self.beslissingsfiche.title:
-            procedurestap_triples.append((procedurestap_uri, ns.DCT['title'], Literal(self.beslissingsfiche.title))) # TODO bestaat altijd?
+        if self.short_title:
+            procedurestap_triples.append((procedurestap_uri, ns.DCT['alternative'], Literal(self.short_title))) # TODO bestaat altijd?
+        if self.title:
+            procedurestap_triples.append((procedurestap_uri, ns.DCT['title'], Literal(self.title))) # TODO bestaat altijd?
 
         for mandatee in self.beslissingsfiche.indieners:
             procedurestap_triples.append((procedurestap_uri, ns.BESLUITVORMING['heeftBevoegde'], URIRef(mandatee.uri(base_uri))))
@@ -315,8 +319,11 @@ class Agendapunt():
         triples = [
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
-            (uri, ns.DCT['alternative'], Literal(self.beslissingsfiche.source_name)),
         ]
+        if self.short_title:
+            triples.append((uri, ns.DCT['alternative'], Literal(self.short_title))) # TODO bestaat altijd?
+        if self.title:
+            triples.append((uri, ns.DCT['title'], Literal(self.title))) # TODO bestaat altijd?
         procedurestap_triples.append((procedurestap_uri, ns.BESLUITVORMING['isGeagendeerdVia'], uri)) # Zie procedurestap
         if self.type in ('PUNT', 'MEDEDELING'):
             triples += [
@@ -336,8 +343,6 @@ class Agendapunt():
             (uri, ns.EXT['agendapuntHeeftBesluit'], besluit_uri),
             # TODO: Confidentiality
         ]
-        if self.title:
-            triples.append((uri, ns.DCT['title'], Literal(self.title)))
         for mandatee in self.beslissingsfiche.indieners:
             triples.append((uri, ns.EXT['heeftBevoegdeVoorAgendapunt'], URIRef(mandatee.uri(base_uri))))
         for rel_doc in self.rel_docs:

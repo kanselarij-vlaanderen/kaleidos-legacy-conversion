@@ -14,10 +14,6 @@ class Document:
             self.title = first_document_version.title
         else:
             self.title = None
-        if first_document_version.description:
-            self.description = first_document_version.description
-        else:
-            self.description = None
         self.created = first_document_version.mufile.created
         try:
             self.name = first_document_version.name
@@ -57,8 +53,8 @@ class Document:
             triples.append((uri, ns.BESLUITVORMING['stuknummerVR'], Literal(self.name)))
         if self.title:
             triples.append((uri, ns.DCT['title'], Literal(self.title)))
-        if self.description:
-            triples.append((uri, ns.EXT['omschrijving'], Literal(self.description)))
+        # if self.description:
+        #     triples.append((uri, ns.EXT['omschrijving'], Literal(self.description)))
         if self.created:
             triples.append((uri, ns.DCT['created'], Literal(self.created, datatype=XSD.dateTime)))
         for ver, doc in self.document_versions.items():

@@ -37,7 +37,7 @@ class DocumentVersion:
         self.levenscyclus_status = None
         self.pub_dates = None
         self.title = None
-        self.description = None
+        self.short_title = None
         self.type = None
 
         self.mufile = None
@@ -144,10 +144,10 @@ class DocumentVersion:
             triples.append((uri, ns.DCT['created'], Literal(self.mufile.created.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)))
         else:
             pass # FIXME (self.zittingdatum maybe?)
-        if self.title:
-            triples.append((uri, ns.DCT['title'], Literal(self.title)))
-        if self.description:
-            triples.append((uri, ns.EXT['omschrijving'], Literal(self.description)))
+        # if self.title:
+        #     triples.append((uri, ns.DCT['title'], Literal(self.title)))
+        # if self.short_title:
+        #     triples.append((uri, ns.EXT['omschrijving'], Literal(self.short_title)))
         # ext:idNumber # TODO
         triples.append((uri, ns.EXT['gekozenDocumentNaam'], Literal(self.source_name)))
         triples.append((uri, ns.EXT['file'], URIRef(self.mufile.uri(base_uri))))
