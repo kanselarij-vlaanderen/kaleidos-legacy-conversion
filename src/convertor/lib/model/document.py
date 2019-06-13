@@ -16,7 +16,7 @@ class Document:
             self.title = None
         self.created = first_document_version.mufile.created
         try:
-            self.name = first_document_version.name
+            self.name = first_document_version.parsed_name.name()
         except AttributeError:
             self.name = first_document_version.source_name
         try:
