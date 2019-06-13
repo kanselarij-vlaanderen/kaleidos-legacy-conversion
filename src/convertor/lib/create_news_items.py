@@ -13,8 +13,10 @@ TIMEZONE = timezone('Europe/Brussels')
 dirname = os.path.dirname(__file__)
 with open(os.path.join(dirname, './queries/agenda_items.sql'), mode='r') as f:
     QUERY_AGENDAPUNTEN = f.read()
+with open(os.path.join(dirname, './queries/document.sql'), mode='r') as f:
+    QUERY_DOCUMENT = f.read()
 
-def create_news_item_from_src(src):
+def create_news_item_from_src(connection, src):
     try:
         if src['agenda_date'] and src['body_value'] and (src['body_format'] in ('geen_tabellen', 'filtered_html')):
             structured_text = src['body_value']
@@ -42,10 +44,10 @@ def create_news_item_from_src(src):
     ni.theme_refs = list(set(map(int, src['policy_area_ids'].split(',')))) if src['policy_area_ids'] else [] # Conversion to set for uniqueness
     ni.mandatee_refs = list(set(map(int, src['minister_ids'].split(',')))) if src['minister_ids'] else []
     ni.document_refs = list(set(src['document_ids'].split(','))) if src['document_ids'] else []
+    ni.document_refs = list(filter(lambda r: verify_active_disclosure(connection, r), ni.document_refs))
     return ni
 
-def create_news_items(DB_CONFIG):
-    connection = pymysql.connect(**DB_CONFIG, cursorclass=pymysql.cursors.DictCursor)
+def create_news_items(connection):
     try:
         with connection.cursor() as cursor:
             news_items = []
@@ -55,7 +57,7 @@ def create_news_items(DB_CONFIG):
                 news_item_src = cursor.fetchone()
                 if news_item_src:
                     try:
-                        news_item = create_news_item_from_src(news_item_src)
+                        news_item = create_news_item_from_src(connection, news_item_src)
                     except ValueError as e:
                         logging.warning('Failed to parse news item {}, {}'.format(news_item_src, e))
                         continue
@@ -67,6 +69,16 @@ def create_news_items(DB_CONFIG):
     logging.info('Found {} news items.'.format(len(news_items)))
     return news_items
 
+def verify_active_disclosure(connection, doris_id):
+    with connection.cursor() as cursor:
+        # Read a single record
+        cursor.execute(QUERY_DOCUMENT, (str(doris_id),))
+        result = cursor.fetchone()
+        if result:
+            return bool(int(result['active_disclosure']))
+        else:
+            return False
+        
 def group_news_items_by_agenda_date(news_items):
     news_items_by_agenda_date = {}
     for k, g in itertools.groupby(news_items, lambda ni: ni.agenda_date):

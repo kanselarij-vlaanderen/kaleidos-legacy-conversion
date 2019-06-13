@@ -2,6 +2,7 @@
 
 import logging
 import os
+import pymysql
 import rdflib
 
 import config
@@ -72,7 +73,8 @@ unparsed_doc_vers = list(filter(lambda d: d.parsed_name is None, document_versio
 
 agendas = create_agendas(agenda_items)
 
-news_items = create_news_items(config.NIEUWSBERICHTEN_DB_CONFIG)
+connection = pymysql.connect(**config.NIEUWSBERICHTEN_DB_CONFIG, cursorclass=pymysql.cursors.DictCursor)
+news_items = create_news_items(connection)
 
 themes = create_themes(config.NIEUWSBERICHTEN_DB_CONFIG, theme_uuid_lut)
 

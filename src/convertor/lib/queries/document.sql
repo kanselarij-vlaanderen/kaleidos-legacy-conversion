@@ -1,0 +1,14 @@
+SELECT
+field_data_field_doris_object_id.field_doris_object_id_value AS document_id,
+field_data_field_active_disclosure.field_active_disclosure_value AS active_disclosure
+
+FROM 
+field_data_field_documents
+
+LEFT JOIN field_data_field_doris_object_id
+ON field_data_field_documents.field_documents_target_id = field_data_field_doris_object_id.entity_id
+INNER JOIN field_data_field_active_disclosure
+ON field_data_field_documents.field_documents_target_id = field_data_field_active_disclosure.entity_id AND field_data_field_active_disclosure.field_active_disclosure_value = 1
+
+WHERE
+field_data_field_doris_object_id.field_doris_object_id_value = %s;
