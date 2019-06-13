@@ -45,7 +45,7 @@ def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut
         doc.mufile = file
         doc.zittingdatum = doc_src['dar_date_vergadering']['parsed'] if doc_src['dar_date_vergadering']['success'] else None
         doc.zittingnr = doc_src['dar_verg_nr']['parsed']
-        doc.confidential = doc_src['dar_restricted']['parsed'] if doc_src['dar_restricted']['success'] else None
+        doc.confidential = doc_src['dar_restricted']['parsed'] if doc_src['dar_restricted']['success'] else True
         doc.err_date = doc_src['dar_err_date']['parsed'] if doc_src['dar_err_date']['success'] else None
         doc.besl_vereist = doc_src['dar_besl_vereist']['parsed']
         doc.levenscyclus_status = doc_src['dar_levenscyclus_status']['parsed'] if doc_src['dar_levenscyclus_status']['success'] else None

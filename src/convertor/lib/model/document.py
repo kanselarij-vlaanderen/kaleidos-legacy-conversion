@@ -47,7 +47,7 @@ class Document:
             (uri, RDF['type'], ns.FOAF['Document']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.DCT['source'], URIRef(self.src_uri(base_uri))),
-            # (uri, ns.??['??'], Literal(self.confidential)), # TODO confidentiality model?
+            (uri, ns.EXT['vertrouwelijk'], Literal(str(self.confidential).lower(), datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
         ]
         if self.name:
             triples.append((uri, ns.BESLUITVORMING['stuknummerVR'], Literal(self.name)))
