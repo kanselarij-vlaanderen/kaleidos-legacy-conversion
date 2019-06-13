@@ -33,4 +33,12 @@ def create_dossiers(agendas):
                 if dossiernr:
                     dossier.nummer = dossiernr
             dossier.agendapunten.append(agendapunt)
+            for rel_doc in agendapunt.rel_docs:
+                for doc in filter(lambda d: isinstance(d.parsed_name, VrDocumentName), rel_doc.vorige):
+                    n = doc.parsed_name
+                    try:
+                        dossier.agendapunten += dossiers[(n.datum.year, n.dossier_nr)].agendapunten
+                    except KeyError:
+                        pass
+            dossier.agendapunten = list(set(dossier.agendapunten))
     return dossiers
