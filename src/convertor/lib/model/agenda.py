@@ -39,6 +39,7 @@ class Agenda:
         self.uuid = str(uuid.uuid1())
 
         self.zitting_uuid = str(uuid.uuid1())
+        self.notulen_uuid = str(uuid.uuid1())
 
         self.datum = datum
         self.zittingnr = zittingnr
@@ -106,6 +107,9 @@ class Agenda:
     def zitting_uri(self, base_uri):
         return base_uri + "id/zittingen/" + "{}".format(self.zitting_uuid)
 
+    def notulen_uri(self, base_uri):
+        return base_uri + "id/notulen/" + "{}".format(self.notulen_uuid)
+
     def triples(self, ns, base_uri): # DONE, except varia
         # Agenda
         uri = URIRef(self.uri(base_uri))
@@ -137,7 +141,17 @@ class Agenda:
             zitting_triples.append((zitting_uri, ns.BESLUITVORMING['isAangevraagdVoor'], URIRef(punt.uri(base_uri))))
             triples.append((uri, ns.DCT['hasPart'], URIRef(punt.uri(base_uri))))
 
-        return triples + zitting_triples
+        # Notulen
+        notulen_uri = URIRef(self.notulen_uri(base_uri))
+        notulen_triples = [
+            (notulen_uri, RDF['type'], ns.EXT['Notule']),
+            (notulen_uri, ns.MU['uuid'], Literal(self.notulen_uuid)),
+            # (notulen_uri, ns.EXT['aangemaaktOp'], ),
+            # (notulen_uri, ns.EXT['description'], ),
+            (zitting_uri, ns.EXT['algemeneNotulen'], notulen_uri),
+            (notulen_uri, ns.EXT['getekendeDocumentVersiesVoorNotulen'], self.notulen.uri(base_uri))
+        ]
+        return triples + zitting_triples + notulen_triples
 
 
 class Agendapunt():
