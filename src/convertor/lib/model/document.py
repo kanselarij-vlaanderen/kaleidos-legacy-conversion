@@ -23,7 +23,7 @@ class Document:
             self.document_versions = {first_document_version.version: first_document_version}
         except AttributeError:
             self.document_versions = {1: first_document_version}
-        self.type = first_document_version.type
+        self.doc_type_uri = first_document_version.doc_type_uri
 
     def __hash__(self):
         return self.uuid
@@ -59,7 +59,7 @@ class Document:
             triples.append((uri, ns.DCT['created'], Literal(self.created, datatype=XSD.dateTime)))
         for ver, doc in self.document_versions.items():
             triples.append((uri, ns.BESLUITVORMING['heeftVersie'], URIRef(doc.uri(base_uri))))
-        if self.type:
-            triples.append((uri, ns.EXT['documentType'], URIRef(self.type.uri())))
+        if self.doc_type_uri:
+            triples.append((uri, ns.EXT['documentType'], URIRef(self.doc_type_uri)))
 
         return triples

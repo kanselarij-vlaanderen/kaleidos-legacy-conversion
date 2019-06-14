@@ -5,7 +5,7 @@ import uuid
 from rdflib.namespace import RDF, XSD
 from rdflib import URIRef, Literal
 
-from .document_name import VersionedDocumentName, VrBeslissingsficheName
+from .document_name import VersionedDocumentName, VrBeslissingsficheName, VrDocumentName, VrNotulenName
 
 def search_government(governments, date):
     for gov in governments:
@@ -29,7 +29,6 @@ class DocumentVersion:
         self.parsed_name = parsed_name
 
         self.version = None
-        self.doc_type = None
         self.zittingdatum = None
         self.zittingnr = None
         self.confidential = None
@@ -38,7 +37,6 @@ class DocumentVersion:
         self.pub_dates = None
         self.title = None
         self.short_title = None
-        self.type = None
 
         self.mufile = None
         self.vorige = []
@@ -100,27 +98,23 @@ class DocumentVersion:
                     logging.warning("No match found for indiener reference '{}'".format(indiener))
         return self.indieners
 
-    def link_type_refs(self, document_type_lut):
+    @property
+    def doc_type_uri(self):
         if isinstance(self.parsed_name, VrBeslissingsficheName):
-            type_ref = "Beslissingsfiche"
-        elif self._type_ref:
-            type_ref = self._type_ref
+            return 'http://kanselarij.vo.data.gift/id/concept/document-type-codes/2b73f8e2-b1f8-4cbd-927f-30c91759f08b'
+        elif isinstance(self.parsed_name, VrDocumentName) and self.parsed_name.doc_type == 'DEC':
+            return 'https://data.vlaanderen.be/id/concept/AardWetgeving/Decreet'
+        elif isinstance(self.parsed_name, VrNotulenName):
+            return 'http://kanselarij.vo.data.gift/id/concept/document-type-codes/e149294e-a8b8-4c11-83ac-6d4c417b079b'
+        # elif self._type_ref
+        #     if self._type_ref == 'Perkament':
+        #         return 
+        #     elif self._type_ref == 'Nota':
+        #         return 
+        #     elif self._type_ref == 'Notulen':
+        #         return 
         else:
-            type_ref = None
-
-        if type_ref:
-            if type_ref == 'Perkament':
-                type_ref = 'Ontwerpdecreet van Vlaamse Regering'
-            elif type_ref == 'Nota':
-                type_ref = 'Nota aan de Vlaamse Regering'
-            elif type_ref == 'Notulen':
-                type_ref = 'Notule'
-            try:
-                self.type = document_type_lut[type_ref]
-            except KeyError:
-                self.type = None
-        else:
-            self.type = None
+            return None
 
     def uri(self, base_uri):
         return base_uri + "id/document-versies/" + "{}".format(self.uuid)

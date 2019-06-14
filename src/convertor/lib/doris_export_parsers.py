@@ -179,8 +179,6 @@ def p_doc_name(val):
         day = int(docname_match.group(5))
         month = int(docname_match.group(6))
         type = docname_match.group(8)
-        if type == 'DEC': # CLEANING
-            type = 'DOC'
         dossier_nr = int(docname_match.group(9))
         doc_nr = int(docname_match.group(10).strip('/')) if docname_match.group(10) else None
         if docname_match.group(11):

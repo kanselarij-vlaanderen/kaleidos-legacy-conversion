@@ -23,7 +23,6 @@ from lib.create_news_items import create_news_items, group_news_items_by_agenda_
 from lib.create_themes import create_themes, themes_by_id, load_theme_mapping
 from lib.create_files import load_file_mapping
 
-from lib.create_document_types import create_document_types
 from lib.create_dossiers import create_dossiers
 from lib.create_administrations import create_administrations
 from load_file_metadata import load_file_metadata
@@ -78,8 +77,6 @@ news_items = create_news_items(connection)
 
 themes = create_themes(config.NIEUWSBERICHTEN_DB_CONFIG, theme_uuid_lut)
 
-doc_types_by_label = create_document_types()
-
 
 ###########################################################
 # LINK REFERENCES
@@ -108,7 +105,6 @@ for document_version in document_versions:
         document = Document(document_version)
         documents_by_name[name] = document
     document_version.link_document_refs(documents_by_stuknummer, doc_vers_by_stuknummer_parsed)
-    document_version.link_type_refs(doc_types_by_label)
 
 # roles_by_label = roles_by_label(roles)
 

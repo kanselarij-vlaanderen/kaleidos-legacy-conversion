@@ -23,7 +23,7 @@ class VersionedDocumentName(DocumentName):
 class VrDocumentName(VersionedDocumentName):
     def __init__(self, context, datum, dossier_nr, doc_type='DOC', doc_nr=None):
         assert context in ('VE', 'VR')
-        assert doc_type in ('DOC', 'MED', 'VAR')
+        assert doc_type in ('DOC', 'DEC', 'MED', 'VAR')
         super().__init__()
         self.context = context
         self.datum = datum
