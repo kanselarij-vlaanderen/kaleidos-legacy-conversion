@@ -353,6 +353,6 @@ class Agendapunt():
 
         # NieuwsbriefInfo
         if self.news_item:
-            triples.append((uri, ns.PROV['generated'], URIRef(self.news_item.uri(base_uri))))
+            triples.append((procedurestap_uri, ns.PROV['generated'], URIRef(self.news_item.uri(base_uri))))
 
         return publicatie_triples + besluit_triples + procedurestap_triples + triples
