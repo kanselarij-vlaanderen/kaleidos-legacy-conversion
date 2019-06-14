@@ -290,8 +290,8 @@ class Agendapunt():
             # (procedurestap_uri, ns.DCT['source'], URIRef(self.src_uri)),
             # (procedurestap_uri, ns.DCT['alternative'], Literal(self.beslissingsfiche)),
             # (procedurestap_uri, ns.DCT['created'], Literal(self.aanmaakdatum)),
-            (procedurestap_uri, ns.BESLUITVORMING['besloten'], Literal(self.is_beslist(), datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
-            (procedurestap_uri, ns.EXT['wordtGetoondAlsMededeling'], Literal(bool(self.type == 'MEDEDELING'), datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+            (procedurestap_uri, ns.BESLUITVORMING['besloten'], Literal(str(self.is_beslist()).lower(), datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+            (procedurestap_uri, ns.EXT['wordtGetoondAlsMededeling'], Literal(str(bool(self.type == 'MEDEDELING')).lower(), datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
             (procedurestap_uri, ns.EXT['procedurestapHeeftBesluit'], URIRef(self.beslissingsfiche.uri(base_uri))),
             # besluitvorming:isAangevraagdVoor via Agenda
             # besluitvorming:vertrouwelijkheid TODO, wordt een bool?
