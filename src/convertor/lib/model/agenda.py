@@ -170,10 +170,6 @@ class Agendapunt():
 
         self.beslissingsfiche = beslissingsfiche
         self.rel_docs = [] # Zowel documenten als notulen
-        self.publicaties = []
-        if self.beslissingsfiche.pub_dates:
-            for date, key in self.beslissingsfiche.pub_dates:
-                self.publicaties.append(Publicatie(date, key))  # Key as title ('A' for example)
 
         self.news_item = None
 
@@ -274,11 +270,6 @@ class Agendapunt():
         return base_uri + "id/procedurestappen/" + "{}".format(self.procedurestap_uuid)
 
     def triples(self, ns, base_uri, src_base_uri):
-        # Publicatie
-        publicatie_triples = []
-        for pub in self.publicaties:
-            publicatie_triples += pub.triples(ns, base_uri)
-
         # Besluit
         besluit_uuid = str(uuid.uuid1())
         besluit_uri = URIRef(base_uri + "id/besluiten/" + "{}".format(besluit_uuid))
@@ -293,8 +284,6 @@ class Agendapunt():
             pass
         if self.short_title:
             besluit_triples.append((besluit_uri, ns.ELI['title_short'], Literal(self.short_title)))
-        for pub in self.publicaties:
-            besluit_triples.append((besluit_uri, ns.BESLUITVORMING['isGerealiseerdDoor'], URIRef(pub.uri(base_uri))))
 
         # Procedurestap
         procedurestap_uri = URIRef(self.procedurestap_uri(base_uri))
@@ -369,4 +358,4 @@ class Agendapunt():
         if self.news_item:
             triples.append((procedurestap_uri, ns.PROV['generated'], URIRef(self.news_item.uri(base_uri))))
 
-        return publicatie_triples + besluit_triples + procedurestap_triples + triples
+        return besluit_triples + procedurestap_triples + triples
