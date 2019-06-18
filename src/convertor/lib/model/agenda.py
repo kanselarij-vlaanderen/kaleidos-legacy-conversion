@@ -138,19 +138,22 @@ class Agenda:
 
         # Agenda & Zitting
         for punt in self.agendapunten:
-            zitting_triples.append((zitting_uri, ns.BESLUITVORMING['isAangevraagdVoor'], URIRef(punt.uri(base_uri))))
+            zitting_triples.append((zitting_uri, ns.BESLUITVORMING['isAangevraagdVoor'], URIRef(punt.procedurestap_uri(base_uri))))
             triples.append((uri, ns.DCT['hasPart'], URIRef(punt.uri(base_uri))))
-
-        # Notulen
-        notulen_uri = URIRef(self.notulen_uri(base_uri))
-        notulen_triples = [
-            (notulen_uri, RDF['type'], ns.EXT['Notule']),
-            (notulen_uri, ns.MU['uuid'], Literal(self.notulen_uuid)),
-            # (notulen_uri, ns.EXT['aangemaaktOp'], ),
-            # (notulen_uri, ns.EXT['description'], ),
-            (zitting_uri, ns.EXT['algemeneNotulen'], notulen_uri),
-            (notulen_uri, ns.EXT['getekendeDocumentVersiesVoorNotulen'], self.notulen.uri(base_uri))
-        ]
+            
+        if self.notulen:
+            # Notulen
+            notulen_uri = URIRef(self.notulen_uri(base_uri))
+            notulen_triples = [
+                (notulen_uri, RDF['type'], ns.EXT['Notule']),
+                (notulen_uri, ns.MU['uuid'], Literal(self.notulen_uuid)),
+                # (notulen_uri, ns.EXT['aangemaaktOp'], ),
+                # (notulen_uri, ns.EXT['description'], ),
+                (zitting_uri, ns.EXT['algemeneNotulen'], notulen_uri),
+                (notulen_uri, ns.EXT['getekendeDocumentVersiesVoorNotulen'], URIRef(self.notulen.uri(base_uri)))
+            ]
+        else:
+            notulen_triples = []
         return triples + zitting_triples + notulen_triples
 
 
@@ -168,7 +171,8 @@ class Agendapunt():
         self.zitting = None
         self.besl_vereist = None
 
-        self.beslissingsfiche = beslissingsfiche
+        self.beslissingsfiche = beslissingsfiche # doc version
+        self.beslissingsfiche_doc = None
         self.rel_docs = [] # Zowel documenten als notulen
 
         self.news_item = None
@@ -277,85 +281,71 @@ class Agendapunt():
             (besluit_uri, RDF['type'], ns.BESLUIT['Besluit']),
             (besluit_uri, ns.MU['uuid'], Literal(besluit_uuid)),
             (besluit_uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
+            (besluit_uri, ns.EXT['beslissingsfiche'], URIRef(self.beslissingsfiche.document.uri(base_uri))),
         ]
-        try:
-            besluit_triples.append((besluit_uri, ns.BESLUITVORMING['stuknummerVR'], Literal(self.beslissingsfiche.name))) # or self.beslissingsfiche.stuknummer()
-        except AttributeError:
-            pass
         if self.short_title:
             besluit_triples.append((besluit_uri, ns.ELI['title_short'], Literal(self.short_title)))
-
-        # Procedurestap
-        procedurestap_uri = URIRef(self.procedurestap_uri(base_uri))
-        procedurestap_triples = [
-            (procedurestap_uri, RDF['type'], ns.DBPEDIA['UnitOfWork']),
-            (procedurestap_uri, ns.MU['uuid'], Literal(self.procedurestap_uuid)),
-            # (procedurestap_uri, ns.DCT['source'], URIRef(self.src_uri)),
-            # (procedurestap_uri, ns.DCT['alternative'], Literal(self.beslissingsfiche)),
-            # (procedurestap_uri, ns.DCT['created'], Literal(self.aanmaakdatum)),
-            (procedurestap_uri, ns.BESLUITVORMING['besloten'], Literal(str(self.is_beslist()).lower(), datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
-            (procedurestap_uri, ns.EXT['wordtGetoondAlsMededeling'], Literal(str(bool(self.type == 'MEDEDELING')).lower(), datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
-            (procedurestap_uri, ns.EXT['procedurestapHeeftBesluit'], URIRef(self.beslissingsfiche.uri(base_uri))),
-            # besluitvorming:isAangevraagdVoor via Agenda
-            # besluitvorming:vertrouwelijkheid TODO, wordt een bool?
-        ]
-        if self.short_title:
-            procedurestap_triples.append((procedurestap_uri, ns.DCT['alternative'], Literal(self.short_title))) # TODO bestaat altijd?
-        if self.title:
-            procedurestap_triples.append((procedurestap_uri, ns.DCT['title'], Literal(self.title))) # TODO bestaat altijd?
-
-        for mandatee in self.beslissingsfiche.indieners:
-            procedurestap_triples.append((procedurestap_uri, ns.BESLUITVORMING['heeftBevoegde'], URIRef(mandatee.uri(base_uri))))
-        for rel_procedurestap_uri in self.gerelateerde_procedurestappen_uris:
-            procedurestap_triples.append((procedurestap_uri, ns.DCT['relation'], URIRef(rel_procedurestap_uri)))
-        for rel_doc in self.rel_docs:
-            procedurestap_triples.append((procedurestap_uri, ns.EXT['bevatDocumentversie'], URIRef(rel_doc.uri(base_uri))))
-        if self.news_item:
-            for theme in self.news_item.themes:
-                procedurestap_triples.append((procedurestap_uri, ns.DCT['subject'], URIRef(theme.uri(base_uri))))
-        # besluitvorming:isGeagendeerdVia via Agendapunt
-        # besluitvorming:isAangevraagdVoor -> zie Agenda
-        # ext:subcaseProcedurestapFase # TODO, na aanmaken v procedurestappen de fase materializen adhv aantal in dossier? Low prio
 
         # Agendapunt
         uri = URIRef(self.uri(base_uri))
         triples = [
+            (uri, RDF['type'], ns.BESLUIT['Agendapunt']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
-        ]
-        if self.short_title:
-            triples.append((uri, ns.DCT['alternative'], Literal(self.short_title))) # TODO bestaat altijd?
-        if self.title:
-            triples.append((uri, ns.DCT['title'], Literal(self.title))) # TODO bestaat altijd?
-        procedurestap_triples.append((procedurestap_uri, ns.BESLUITVORMING['isGeagendeerdVia'], uri)) # Zie procedurestap
-        if self.type in ('PUNT', 'MEDEDELING'):
-            triples += [
-                (uri, RDF['type'], ns.BESLUIT['Agendapunt']),
-                (uri, ns.EXT['wordtGetoondAlsMededeling'], Literal(bool(self.type == 'MEDEDELING'), datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
-            ]
-        elif self.type == 'VARIA': # TODO
-            triples += [
-                (uri, RDF['type'], ns.BESLUIT['Agendapunt']),
-                (uri, ns.EXT['wordtGetoondAlsMededeling'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
-            ]
-        triples += [
             (uri, ns.EXT['prioriteit'], Literal(self.volgnr)),
-            (uri, ns.BESLUITVORMING['formeelOK'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
-            # ext:wordtGetoondAlsMededeling see above
-            # (uri, ns.EXT['heeftVerdaagd'], URIRef()), # Can't do, no data
-            (uri, ns.EXT['agendapuntHeeftBesluit'], besluit_uri),
-            # TODO: Confidentiality
         ]
-        for mandatee in self.beslissingsfiche.indieners:
-            triples.append((uri, ns.EXT['heeftBevoegdeVoorAgendapunt'], URIRef(mandatee.uri(base_uri))))
-        for rel_doc in self.rel_docs:
-            triples.append((uri, ns.EXT['bevatAgendapuntDocumentversie'], URIRef(rel_doc.uri(base_uri))))
-        if self.news_item:
-            for theme in self.news_item.themes:
-                triples.append((uri, ns.EXT['agendapuntSubject'], URIRef(theme.uri(base_uri))))
 
-        # NieuwsbriefInfo
+        # Procedurestap
+        procedurestap_uri = URIRef(self.procedurestap_uri(base_uri))
+        triples += [
+            (procedurestap_uri, RDF['type'], ns.DBPEDIA['UnitOfWork']),
+            (procedurestap_uri, ns.MU['uuid'], Literal(self.procedurestap_uuid)),
+            (procedurestap_uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
+            (procedurestap_uri, ns.BESLUITVORMING['besloten'], Literal('true' if self.is_beslist() else 'false', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+            (procedurestap_uri, ns.BESLUITVORMING['isGeagendeerdVia'], uri),
+            (procedurestap_uri, ns.EXT['procedurestapHeeftBesluit'], URIRef(besluit_uri)),
+        ]
         if self.news_item:
             triples.append((procedurestap_uri, ns.PROV['generated'], URIRef(self.news_item.uri(base_uri))))
+        # for rel_procedurestap_uri in self.gerelateerde_procedurestappen_uris:
+        #     triples.append((procedurestap_uri, ns.DCT['relation'], URIRef(rel_procedurestap_uri)))
+        
+        # Procedurestap & Agendapunt
+        procedurestap_uri = URIRef(self.procedurestap_uri(base_uri))
+        triples += [
+            (uri, ns.BESLUITVORMING['formeelOK'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),            
+            (procedurestap_uri, ns.BESLUITVORMING['formeelOK'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),            
+            (uri, ns.EXT['wordtGetoondAlsMededeling'], Literal('false' if self.type == 'PUNT' else 'true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+            (procedurestap_uri, ns.EXT['wordtGetoondAlsMededeling'], Literal('false' if self.type == 'PUNT' else 'true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+            # besluitvorming:isAangevraagdVoor via Agenda
+            # besluitvorming:vertrouwelijkheid TODO, wordt een bool?
+        ]
+        if self.short_title:
+            triples += [
+                (procedurestap_uri, ns.DCT['alternative'], Literal(self.short_title)),
+                (uri, ns.DCT['alternative'], Literal(self.short_title)),
+            ]
+        if self.title:
+            triples += [
+                (procedurestap_uri, ns.DCT['title'], Literal(self.title)),
+                (uri, ns.DCT['title'], Literal(self.title)),
+            ]
+        if self.news_item:
+            for theme in self.news_item.themes:
+                triples += [
+                    (uri, ns.EXT['agendapuntSubject'], URIRef(theme.uri(base_uri))),
+                    (procedurestap_uri, ns.DCT['subject'], URIRef(theme.uri(base_uri))),
+                ]
+        for mandatee in self.beslissingsfiche.indieners:
+            triples += [
+                (uri, ns.EXT['heeftBevoegdeVoorAgendapunt'], URIRef(mandatee.uri(base_uri))),
+                (procedurestap_uri, ns.BESLUITVORMING['heeftBevoegde'], URIRef(mandatee.uri(base_uri))),
+            ]
+        for rel_doc in self.rel_docs:
+            triples += [
+                (uri, ns.EXT['bevatAgendapuntDocumentversie'], URIRef(rel_doc.uri(base_uri))),
+                (procedurestap_uri, ns.EXT['bevatDocumentversie'], URIRef(rel_doc.uri(base_uri)))
+            ]
+        # ext:subcaseProcedurestapFase # TODO, na aanmaken v procedurestappen de fase materializen adhv aantal in dossier? Low prio
 
-        return besluit_triples + procedurestap_triples + triples
+        return besluit_triples + triples

@@ -29,6 +29,7 @@ class DocumentVersion:
         self.parsed_name = parsed_name
 
         self.version = None
+        self.document = None # Reference to parent document
         self.zittingdatum = None
         self.zittingnr = None
         self.confidential = None

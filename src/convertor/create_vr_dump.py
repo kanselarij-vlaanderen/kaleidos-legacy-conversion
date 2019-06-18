@@ -104,6 +104,7 @@ for document_version in document_versions:
     except KeyError:
         document = Document(document_version)
         documents_by_name[name] = document
+    document_version.document = document
     document_version.link_document_refs(documents_by_stuknummer, doc_vers_by_stuknummer_parsed)
 
 # roles_by_label = roles_by_label(roles)
