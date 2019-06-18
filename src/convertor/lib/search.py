@@ -15,7 +15,7 @@ def find_agenda(agendas, date, verg_nr):
     return find(agendas, lambda agenda: agenda.datum == date and agenda.zittingnr == verg_nr)
 
 def find_agenda_document(agenda_documenten, date, verg_nr):
-    return find(agenda_documenten, lambda doc: doc.datum == date and doc.zittingnr == verg_nr)
+    return find(agenda_documenten, lambda doc: doc.datum == date and doc._zittingnr == verg_nr)
 
 def find_notulen_document(notulen_documenten, date, zittingnr):
-    return find(notulen_documenten, lambda doc: doc.jaar == date.year and doc.zittingnr == zittingnr)
+    return find(notulen_documenten, lambda doc: doc.jaar == date.year and doc._zittingnr == zittingnr)

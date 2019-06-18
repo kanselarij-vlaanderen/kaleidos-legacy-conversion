@@ -43,8 +43,8 @@ def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut
         files.append(file)
         doc = DocumentVersion(doc_src['r_object_id']['parsed'], doc_src['object_name']['source'])
         doc.mufile = file
-        doc.zittingdatum = doc_src['dar_date_vergadering']['parsed'] if doc_src['dar_date_vergadering']['success'] else None
-        doc.zittingnr = doc_src['dar_verg_nr']['parsed']
+        doc._zittingdatum = doc_src['dar_date_vergadering']['parsed'] if doc_src['dar_date_vergadering']['success'] else None
+        doc._zittingnr = doc_src['dar_verg_nr']['parsed']
         doc.confidential = doc_src['dar_restricted']['parsed'] if doc_src['dar_restricted']['success'] else True
         doc.err_date = doc_src['dar_err_date']['parsed'] if doc_src['dar_err_date']['success'] else None
         doc.besl_vereist = doc_src['dar_besl_vereist']['parsed']
@@ -76,16 +76,16 @@ def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut
             if 'dar_fiche_type' in doc_src: # Beslissingsfiches
                 doc._type_ref = doc_src['dar_fiche_type']['parsed'] if doc_src['dar_fiche_type']['success'] else None
 
-                if doc_src['dar_date_vergadering']['success']:
-                    jaar = doc_src['dar_date_vergadering']['parsed']
+                if doc._zittingdatum:
+                    jaar = doc._zittingdatum.year
                 elif isinstance(doc.parsed_name, VrBeslissingsficheName):
                     jaar = doc.parsed_name.year
                 elif isinstance(doc.parsed_name, OcBeslissingsficheName):
                     jaar = doc.parsed_name.datum.year
                 else:
                     logging.warning("Couldn't determine session year from separate metadata field nor document name for document version {}".format(doc.source_name))
-                if doc_src['dar_verg_nr']['success']:
-                    zitting_nr = doc_src['dar_verg_nr']['parsed']
+                if doc._zittingnr:
+                    zitting_nr = doc._zittingnr
                 elif isinstance(doc.parsed_name, VrBeslissingsficheName):
                     zitting_nr = doc.parsed_name.zitting_nr
                 else:

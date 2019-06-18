@@ -8,10 +8,10 @@ from .search import find_agenda
 def create_agendas(agendapunten):
     agendas = []
     for agendapunt in agendapunten:
-        agenda = find_agenda(agendas, agendapunt.beslissingsfiche.zittingdatum, agendapunt.beslissingsfiche.zittingnr)
+        agenda = find_agenda(agendas, agendapunt.beslissingsfiche._zittingdatum, agendapunt.beslissingsfiche._zittingnr)
         if not agenda:
             try:
-                agenda = create_agenda(agendapunt.beslissingsfiche.zittingdatum, agendapunt.beslissingsfiche.zittingnr)
+                agenda = create_agenda(agendapunt.beslissingsfiche._zittingdatum, agendapunt.beslissingsfiche._zittingnr)
             except ValueError as e:
                 logging.warning(str(e))
                 continue

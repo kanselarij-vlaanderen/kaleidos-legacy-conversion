@@ -30,8 +30,8 @@ class DocumentVersion:
 
         self.version = None
         self.document = None # Reference to parent document
-        self.zittingdatum = None
-        self.zittingnr = None
+        self._zittingdatum = None
+        self._zittingnr = None
         self.confidential = None
         self.err_date = None
         self.levenscyclus_status = None
@@ -85,7 +85,7 @@ class DocumentVersion:
     def link_indiener_refs(self, submitter_lut, governments):
         """ mandatee_lut takes keys of form str(ref)+gov.uuid (for mandatees) or str(ref) (for governing bodies)"""
         if self._indiener_refs:
-            gov = search_government(governments, self.zittingdatum)
+            gov = search_government(governments, self._zittingdatum)
             self.indieners = []
             for indiener in self._indiener_refs:
                 if gov:
