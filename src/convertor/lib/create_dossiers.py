@@ -17,7 +17,8 @@ def create_dossiers(agendas):
                 dossiernr_doc_name = next(doc.parsed_name for doc in agendapunt.rel_docs if isinstance(doc.parsed_name, VrDocumentName))
                 year = dossiernr_doc_name.datum.year
                 dossiernr = dossiernr_doc_name.dossier_nr
-                dossier_key = tuple((year, dossiernr))
+                doc_type = dossiernr_doc_name.doc_type
+                dossier_key = tuple((year, doc_type, dossiernr))
             except StopIteration: # No document that contains a dossiernummer in this agendapunt
                 logging.info("No dossiernr found for agenda item {}".format(agendapunt))
                 dossiernr = None
@@ -37,7 +38,7 @@ def create_dossiers(agendas):
                 for doc in filter(lambda d: isinstance(d.parsed_name, VrDocumentName), rel_doc.vorige):
                     n = doc.parsed_name
                     try:
-                        dossier.agendapunten += dossiers[(n.datum.year, n.dossier_nr)].agendapunten
+                        dossier.agendapunten += dossiers[(n.datum.year, n.doc_type, n.dossier_nr)].agendapunten
                     except KeyError:
                         pass
             dossier.agendapunten = list(set(dossier.agendapunten))
