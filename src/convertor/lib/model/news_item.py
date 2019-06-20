@@ -8,6 +8,7 @@ from rdflib import URIRef, Literal
 class Theme:
     def __init__(self, label):
         super().__init__()
+        self.src_uri = ''
         self.uuid = str(uuid.uuid1())
         self.id = None
         self.label = label
@@ -16,19 +17,16 @@ class Theme:
     def __str__(self):
         return self.label
 
-    def src_uri(self, src_base_uri):
-        return src_base_uri + "node" + "/{}".format(self.id)
-
     def uri(self, base_uri):
         return base_uri + "id/concept/thema-codes" + "/{}".format(self.uuid)
 
-    def triples(self, ns, base_uri, src_base_uri):
+    def triples(self, ns, base_uri):
         uri = URIRef(self.uri(base_uri))
         triples = [
             (uri, RDF['type'], ns.EXT['ThemaCode']),
             (uri, RDF['type'], ns.SKOS['Concept']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
-            (uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
+            (uri, ns.DCT['source'], URIRef(self.src_uri)),
             (uri, ns.SKOS['prefLabel'], Literal(self.label)),
             (uri, ns.SKOS['topConceptOf'], ns.EXT['ThemaCode']),
         ]
@@ -40,6 +38,7 @@ class Theme:
 class NewsItem:
     def __init__(self, id, date, title, plaintext_body, structuredtext_body):
         super().__init__()
+        self.src_uri = ''
         self.uuid = str(uuid.uuid1())
         self.id = id
         self.agenda_date = date
@@ -60,9 +59,6 @@ class NewsItem:
 
     def __str__(self):
         return "{} {} {}: {}".format(self.agenda_date, self.agenda_item_type, self.agenda_item_nr, self.title)
-
-    def src_uri(self, src_base_uri):
-        return src_base_uri + "node" + "/{}".format(self.id)
 
     def uri(self, base_uri):
         return base_uri + "id/nieuwsbrief-infos" + "/{}".format(self.uuid)
@@ -104,12 +100,12 @@ class NewsItem:
                 except KeyError as e:
                     logging.warning('No match found for \'document ref\' {}'.format(document_ref))
 
-    def triples(self, ns, base_uri, src_base_uri):
+    def triples(self, ns, base_uri):
         uri = URIRef(self.uri(base_uri))
         triples = [
             (uri, RDF['type'], ns.BESLUITVORMING['NieuwsbriefInfo']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
-            (uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
+            (uri, ns.DCT['source'], URIRef(self.src_uri)),
             (uri, ns.DCT['title'], Literal(self.title)),
             (uri, ns.BESLUITVORMING['inhoud'], Literal(self.plaintext_body)),
             (uri, ns.EXT['htmlInhoud'], Literal(self.structuredtext_body)),

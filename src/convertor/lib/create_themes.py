@@ -12,7 +12,7 @@ dirname = os.path.dirname(__file__)
 with open(os.path.join(dirname, './queries/themes.sql'), mode='r') as f:
     QUERY_THEMAS = f.read()
 
-def create_themes(DB_CONFIG, uuid_lut=None):
+def create_themes(DB_CONFIG, src_base_uri, uuid_lut=None):
     connection = pymysql.connect(**DB_CONFIG, cursorclass=pymysql.cursors.DictCursor)
     try:
         with connection.cursor() as cursor:
@@ -30,6 +30,7 @@ def create_themes(DB_CONFIG, uuid_lut=None):
             try:
                 theme.uuid = uuid_lut[str(theme_src['id'])][0]
             except KeyError:
+                theme.src_uri = src_base_uri + str(theme.id)
                 theme.deprecated = True
         themes.append(theme)
     return themes

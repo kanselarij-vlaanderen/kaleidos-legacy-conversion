@@ -15,7 +15,7 @@ NIEUWSBERICHTEN_DB_HOST = environ.get('NIEUWSBERICHTEN_DB_HOST', 'nieuwsberichte
 
 
 DORIS_EXPORT_URI = "http://doris.vlaanderen.be/export/" # With trailing slash!
-NIEUWSBERICHTEN_EXPORT_URI = "http://nieuwsberichten.vonet.be/" # With trailing slash!
+NIEUWSBERICHTEN_EXPORT_URI = "http://nieuwsberichten.vonet.be/node/" # With trailing slash!
 
 KALEIDOS_API_URI = "http://kanselarij.vo.data.gift/" # With trailing slash!
 KALEIDOS_DOC_FILE_PATH = ""  # With trailing slash! relative to /share

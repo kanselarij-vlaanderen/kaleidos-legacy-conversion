@@ -162,6 +162,7 @@ class Agendapunt():
     def __init__(self, jaar, zittingnr, volgnr, beslissingsfiche):
         super().__init__()
         self.uuid = str(uuid.uuid1())
+        self.src_uri = ''
         self.procedurestap_uuid = str(uuid.uuid1())
         self.jaar = jaar
         self.zittingnr = zittingnr
@@ -264,34 +265,30 @@ class Agendapunt():
     def is_vertrouwelijk(self):
         return all([doc.confidential for doc in self.rel_docs]) and self.beslissingsfiche.confidential
 
-    def src_uri(self, src_base_uri):
-        return "{}vr/fiches/{}.{}".format(src_base_uri, self.beslissingsfiche.id, self.beslissingsfiche.mufile.extension)
-
     def uri(self, base_uri):
         return base_uri + "id/agendapunten/" + "{}".format(self.uuid)
 
     def procedurestap_uri(self, base_uri):
         return base_uri + "id/procedurestappen/" + "{}".format(self.procedurestap_uuid)
 
-    def triples(self, ns, base_uri, src_base_uri):
         # Besluit
         besluit_uuid = str(uuid.uuid1())
         besluit_uri = URIRef(base_uri + "id/besluiten/" + "{}".format(besluit_uuid))
         besluit_triples = [
             (besluit_uri, RDF['type'], ns.BESLUIT['Besluit']),
             (besluit_uri, ns.MU['uuid'], Literal(besluit_uuid)),
-            (besluit_uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
             (besluit_uri, ns.EXT['beslissingsfiche'], URIRef(self.beslissingsfiche.document.uri(base_uri))),
         ]
         if self.short_title:
             besluit_triples.append((besluit_uri, ns.ELI['title_short'], Literal(self.short_title)))
 
+    def triples(self, ns, base_uri):
         # Agendapunt
         uri = URIRef(self.uri(base_uri))
         triples = [
             (uri, RDF['type'], ns.BESLUIT['Agendapunt']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
-            (uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
+            (uri, ns.DCT['source'], URIRef(self.src_uri)),
             (uri, ns.EXT['prioriteit'], Literal(self.volgnr)),
         ]
 
@@ -300,7 +297,6 @@ class Agendapunt():
         triples += [
             (procedurestap_uri, RDF['type'], ns.DBPEDIA['UnitOfWork']),
             (procedurestap_uri, ns.MU['uuid'], Literal(self.procedurestap_uuid)),
-            (procedurestap_uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
             (procedurestap_uri, ns.BESLUITVORMING['besloten'], Literal('true' if self.is_beslist() else 'false', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
             (procedurestap_uri, ns.BESLUITVORMING['isGeagendeerdVia'], uri),
             (procedurestap_uri, ns.EXT['procedurestapHeeftBesluit'], URIRef(besluit_uri)),

@@ -57,8 +57,8 @@ submitter_uuid_lut = load_submitter_mapping(config.SUBMITTER_MAPPING_FILE_PATH)
 ###########################################################
 # CONVERT TO OBJECT MODEL
 ###########################################################
-doc_parsed = create_files_document_versions_agenda_items(parsed_doc_source, file_metadata_lut, file_uuid_lut)
-fiche_parsed = create_files_document_versions_agenda_items(parsed_fiche_source, file_metadata_lut, file_uuid_lut)
+doc_parsed = create_files_document_versions_agenda_items(parsed_doc_source, config.DORIS_EXPORT_URI, file_metadata_lut, file_uuid_lut)
+fiche_parsed = create_files_document_versions_agenda_items(parsed_fiche_source, config.DORIS_EXPORT_URI, file_metadata_lut, file_uuid_lut)
 files = doc_parsed[0] + fiche_parsed[0]
 document_versions = doc_parsed[1] + fiche_parsed[1]
 agenda_items = doc_parsed[2] + fiche_parsed[2]
@@ -73,9 +73,9 @@ unparsed_doc_vers = list(filter(lambda d: d.parsed_name is None, document_versio
 agendas = create_agendas(agenda_items)
 
 connection = pymysql.connect(**config.NIEUWSBERICHTEN_DB_CONFIG, cursorclass=pymysql.cursors.DictCursor)
-news_items = create_news_items(connection)
+news_items = create_news_items(connection, config.NIEUWSBERICHTEN_EXPORT_URI)
 
-themes = create_themes(config.NIEUWSBERICHTEN_DB_CONFIG, theme_uuid_lut)
+themes = create_themes(config.NIEUWSBERICHTEN_DB_CONFIG, config.NIEUWSBERICHTEN_EXPORT_URI, theme_uuid_lut)
 
 
 ###########################################################
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     g = rdflib.Graph(identifier=rdflib.URIRef(config.GRAPH_NAME))
 
     for doc_ver in document_versions:
-        for triple in doc_ver.triples(ns, config.KALEIDOS_API_URI, config.DORIS_EXPORT_URI):
+        for triple in doc_ver.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
 
     for doc in documents_by_name.values():
@@ -170,7 +170,7 @@ if __name__ == "__main__":
         for triple in agenda.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
         for ap in agenda.punten:
-            for triple in ap.triples(ns, config.KALEIDOS_API_URI, config.DORIS_EXPORT_URI):
+            for triple in ap.triples(ns, config.KALEIDOS_API_URI):
                 g.add(triple)
 
     for dossier in dossiers_by_year_dossiernr.values():
@@ -178,19 +178,19 @@ if __name__ == "__main__":
             g.add(triple)
 
     for news_item in news_items:
-        for triple in news_item.triples(ns, config.KALEIDOS_API_URI, config.NIEUWSBERICHTEN_EXPORT_URI):
+        for triple in news_item.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
 
     for theme in filter(lambda t: t.deprecated, themes): # Code list for themes exists. Only dump deprecated (odd, unknown) ones.
-        for triple in theme.triples(ns, config.KALEIDOS_API_URI, config.NIEUWSBERICHTEN_EXPORT_URI):
+        for triple in theme.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
 
     for person in persons:
-        for triple in person.triples(ns, config.KALEIDOS_API_URI, config.DORIS_EXPORT_URI):
+        for triple in person.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
 
     for submitter in filter(lambda s: s.deprecated, submitters_lut.values()):  # Code list for government body submitters exists. Only dump deprecated (odd, unknown) ones.
-        for triple in submitter.triples(ns, config.KALEIDOS_API_URI, config.DORIS_EXPORT_URI):
+        for triple in submitter.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
 
     filename = 'kaleidos_vr.ttl'

@@ -74,8 +74,6 @@ def create_submitters_by_ref(agendas, administrations, submitter_uuid_lut):
                             gov.mandatees.sort(key=lambda m: tuple((m.start_date, m.person.family_name)))
                             mandatee.official_title = title
                             mandatee.end_date = gov.resignation_date
-                            mandatee.source = submitter
-                            mandatee.src_uri = agendapunt.uri
                             mandatee.mandate_uri = gov.minister_mandate_uri # We assume all ministers. Differentiation MP, vMP in postprocessing
                         submitters_by_ref[ref] = mandatee
                     elif isinstance(submitter, str): # A governing organ

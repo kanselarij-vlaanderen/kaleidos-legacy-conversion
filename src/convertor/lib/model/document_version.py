@@ -25,6 +25,7 @@ class DocumentVersion:
         super().__init__()
         self.uuid = str(uuid.uuid1())
         self.id = id
+        self.src_uri = ''
         self.source_name = source_name
         self.parsed_name = parsed_name
 
@@ -120,16 +121,12 @@ class DocumentVersion:
     def uri(self, base_uri):
         return base_uri + "id/document-versies/" + "{}".format(self.uuid)
 
-    def src_uri(self, src_base_uri):
-        # According to HB+ consultant object_ids in documentum arent unique, document type is needed for uniqueness
-        return src_base_uri + "{}-{}".format(self.id, self.mufile.extension)
-
-    def triples(self, ns, base_uri, src_base_uri):
+    def triples(self, ns, base_uri):
         uri = URIRef(self.uri(base_uri))
         triples = [
             (uri, RDF['type'], ns.EXT['DocumentVersie']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
-            (uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
+            (uri, ns.DCT['source'], URIRef(self.src_uri)),
         ]
         if self.version:
             triples.append((uri, ns.EXT['versieNummer'], Literal(self.version)))

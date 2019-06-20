@@ -47,7 +47,7 @@ def create_news_item_from_src(connection, src):
     ni.document_refs = list(filter(lambda r: verify_active_disclosure(connection, r), ni.document_refs))
     return ni
 
-def create_news_items(connection):
+def create_news_items(connection, src_base_uri):
     try:
         with connection.cursor() as cursor:
             news_items = []
@@ -58,6 +58,7 @@ def create_news_items(connection):
                 if news_item_src:
                     try:
                         news_item = create_news_item_from_src(connection, news_item_src)
+                        news_item.src_uri = src_base_uri + str(news_item.id)
                     except ValueError as e:
                         logging.warning('Failed to parse news item {}, {}'.format(news_item_src, e))
                         continue
@@ -81,6 +82,7 @@ def verify_active_disclosure(connection, doris_id):
         
 def group_news_items_by_agenda_date(news_items):
     news_items_by_agenda_date = {}
+    news_items = sorted(news_items, key=lambda ni: ni.agenda_date)
     for k, g in itertools.groupby(news_items, lambda ni: ni.agenda_date):
         l = [e for e in g]
         l.sort(key=lambda ni: (ni.agenda_item_type, ni.agenda_item_nr))

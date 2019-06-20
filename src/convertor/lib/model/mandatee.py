@@ -8,6 +8,7 @@ from rdflib import URIRef, Literal
 class Mandatee:
     def __init__(self, person, start_date, end_date=None):
         super().__init__()
+        self.src_uri = ''
         self.uuid = str(uuid.uuid1())
         self.mandate_uuid = str(uuid.uuid1())
 
@@ -27,21 +28,18 @@ class Mandatee:
                                                  self.person.uuid,
                                                  self.official_title)
 
-    def src_uri(self, src_base_uri):
-        raise NotImplementedError("Please Implement this method")
-
     def uri(self, base_uri):
         return base_uri + "id/mandatarissen" + "/{}".format(self.uuid)
 
     def is_active(self):
         return bool(self.end_date)
 
-    def triples(self, ns, base_uri, src_base_uri):
+    def triples(self, ns, base_uri):
         uri = URIRef(self.uri(base_uri))
         triples = [
             (uri, RDF['type'], ns.MANDAAT['Mandataris']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
-            (uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
+            (uri, ns.DCT['source'], URIRef(self.src_uri)),
             (uri, ns.MANDAAT['start'], Literal(self.start_date.isoformat(), datatype=XSD.date)),
             (uri, ns.ORG['holds'], URIRef(self.mandate_uri)),
             (uri, ns.MANDAAT['isBestuurlijkeAliasVan'], URIRef(self.person.uri(base_uri))),
@@ -58,6 +56,7 @@ class Mandatee:
 class Person:
     def __init__(self, family_name, given_name=None):
         super().__init__()
+        self.src_uri = ''
         self.uuid = str(uuid.uuid1())
         self.src_id = None
 
@@ -70,18 +69,15 @@ class Person:
             retval += ', ' + self.given_name
         return retval
 
-    def src_uri(self, src_base_uri):
-        raise NotImplementedError("Please Implement this method")
-
     def uri(self, base_uri):
         return base_uri + "id/personen" + "/{}".format(self.uuid)
 
-    def triples(self, ns, base_uri, src_base_uri):
+    def triples(self, ns, base_uri):
         uri = URIRef(self.uri(base_uri))
         triples = [
             (uri, RDF['type'], ns.PERSON['Person']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
-            (uri, ns.DCT['source'], URIRef(self.src_uri(src_base_uri))),
+            (uri, ns.DCT['source'], URIRef(self.src_uri)),
             (uri, ns.FOAF['familyName'], Literal(self.family_name)),
             # (uri, ns.FOAF['name'], Literal()),
         ]

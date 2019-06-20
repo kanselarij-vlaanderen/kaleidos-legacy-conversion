@@ -7,7 +7,7 @@ from rdflib import URIRef, Literal
 class Document:
     def __init__(self, first_document_version):
         super().__init__()
-        self.source = first_document_version
+        self.src_uri = first_document_version.uri
         self.uuid = str(uuid.uuid1())
 
         if first_document_version.title:
@@ -34,9 +34,6 @@ class Document:
     @property
     def confidential(self):
         any(doc.confidential for ver, doc in self.document_versions.items()) # No 'vertrouwelijk' at document-version level in new model, so better safe than sorry with 'any'
-
-    def src_uri(self, base_uri):
-        return self.source.uri(base_uri)
 
     def uri(self, base_uri):
         return "{}id/documenten/{}".format(base_uri, self.uuid)

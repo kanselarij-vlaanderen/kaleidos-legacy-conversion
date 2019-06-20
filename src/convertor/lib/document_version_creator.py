@@ -27,7 +27,7 @@ def titles_from_dar_onderwerp(dar_onderwerp):
     else:
         return None, None
 
-def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut, file_uuid_lut=None):
+def create_files_document_versions_agenda_items(parsed_import, src_base_uri, file_metadata_lut, file_uuid_lut=None):
     files = []
     documenten = []
     agendapunten = []
@@ -43,6 +43,7 @@ def create_files_document_versions_agenda_items(parsed_import, file_metadata_lut
         files.append(file)
         doc = DocumentVersion(doc_src['r_object_id']['parsed'], doc_src['object_name']['source'])
         doc.mufile = file
+        doc.src_uri = src_base_uri + "{}-{}".format(doc.id, doc.mufile.extension) # object_ids in documentum arent unique, document type is needed for uniqueness
         doc._zittingdatum = doc_src['dar_date_vergadering']['parsed'] if doc_src['dar_date_vergadering']['success'] else None
         doc._zittingnr = doc_src['dar_verg_nr']['parsed']
         doc.confidential = doc_src['dar_restricted']['parsed'] if doc_src['dar_restricted']['success'] else True
