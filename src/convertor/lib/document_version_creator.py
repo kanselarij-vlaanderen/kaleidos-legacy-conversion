@@ -123,6 +123,7 @@ def create_files_document_versions_agenda_items(parsed_import, src_base_uri, fil
 
 def group_doc_vers_by_source_name(doc_vers):
     doc_vers_by_source_name = {}
+    doc_vers = sorted(doc_vers, key=lambda doc: doc.source_name)
     for k, g in itertools.groupby(doc_vers, lambda doc: doc.source_name):
         matches = tuple(g)
         doc_vers_by_source_name[k] = matches
@@ -132,6 +133,7 @@ def group_doc_vers_by_source_name(doc_vers):
 
 def group_doc_vers_by_parsed_name(doc_vers):
     doc_vers_by_parsed_name = {}
+    doc_vers = sorted(doc_vers, key=lambda doc: doc.name)
     for k, g in itertools.groupby(doc_vers, lambda doc: doc.name):
         matches = tuple(g)
         doc_vers_by_parsed_name[k] = matches
@@ -142,6 +144,7 @@ def group_doc_vers_by_parsed_name(doc_vers):
 # Group documents by object id
 def group_doc_vers_by_object_id(doc_vers):
     doc_vers_by_object_id = {}
+    doc_vers = sorted(doc_vers, key=lambda doc: doc.id)
     for k, g in itertools.groupby(doc_vers, lambda doc: doc.id):
         matches = tuple(g)
         if len(matches) == 1:

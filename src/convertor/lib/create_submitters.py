@@ -92,6 +92,7 @@ def create_submitters_by_ref(agendas, administrations, submitter_uuid_lut):
 
 def mandatees_by_period_by_src(mandatees):
     mandatees_by_period_by_src = {}
+    mandatees = sorted(mandatees, key=lambda m: (m.start_date, m.end_date, m.person))
     for k, g in itertools.groupby(mandatees, lambda m: (m.start_date, m.end_date, m.person)):
         mandatee = tuple(g)[0]
         mandatees_by_period_by_src[(mandatee.start_date, mandatee.end_date, mandatee.source)] = mandatee
