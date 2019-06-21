@@ -169,7 +169,7 @@ if __name__ == "__main__":
     for agenda in agendas:
         for triple in agenda.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
-        for ap in agenda.punten:
+        for ap in agenda.agendapunten:
             for triple in ap.triples(ns, config.KALEIDOS_API_URI):
                 g.add(triple)
 
