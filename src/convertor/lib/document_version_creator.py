@@ -52,6 +52,7 @@ def create_files_document_versions_agenda_items(parsed_import, src_base_uri, fil
         doc.levenscyclus_status = doc_src['dar_levenscyclus_status']['parsed'] if doc_src['dar_levenscyclus_status']['success'] else None
         doc.pub_dates = doc_src['dar_pub_date']['parsed'] if doc_src['dar_pub_date']['success'] else None
         doc.short_title, doc.title = titles_from_dar_onderwerp(doc_src['dar_onderwerp']['parsed']) if doc_src['dar_onderwerp']['success'] else tuple(None, None)
+        doc.keywords = doc_src['dar_keywords']['parsed'] if doc_src['dar_keywords']['parsed'] else []
         doc._indiener_refs = doc_src['dar_indiener_samenvatting']['parsed'] if doc_src['dar_indiener_samenvatting']['success'] else []
         if doc_src['dar_vorige']['success']:
             for doc_ref in doc_src['dar_vorige']['parsed']:

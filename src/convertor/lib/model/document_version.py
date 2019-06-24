@@ -40,6 +40,7 @@ class DocumentVersion:
         self.pub_dates = None
         self.title = None
         self.short_title = None
+        self.keywords = []
 
         self.mufile = None
         self.vorige = []
@@ -110,6 +111,22 @@ class DocumentVersion:
             return 'https://data.vlaanderen.be/id/concept/AardWetgeving/Decreet'
         elif isinstance(self.parsed_name, VrNotulenName):
             return 'http://kanselarij.vo.data.gift/id/concept/document-type-codes/e149294e-a8b8-4c11-83ac-6d4c417b079b'
+        elif 'IF' in self.keywords:
+            return 'http://kanselarij.vo.data.gift/id/concept/document-type-codes/c3f5b27e-70df-4b4b-a0f4-5412b7f1bfe1'
+        elif 'BVR' in self.keywords:
+            return 'https://data.vlaanderen.be/id/concept/AardWetgeving/BesluitVanDeVlaamseRegering'
+        elif 'MB' in self.keywords:
+            return 'https://data.vlaanderen.be/id/concept/AardWetgeving/MinisterieelBesluit'
+        elif 'BA' in self.keywords or 'Begrotingsakkoord' in self.keywords:
+            return 'http://kanselarij.vo.data.gift/id/concept/document-type-codes/97eb049e-2e2a-4bf1-97dd-96a9da72c421'
+        elif 'Motie' in self.keywords or 'motie' in self.keywords:
+            return 'http://kanselarij.vo.data.gift/id/concept/document-type-codes/f252ddeb-581f-4122-8ebd-e740e74604f9'
+        elif 'Memorie' in self.keywords or 'memorie' in self.keywords:
+            return 'http://kanselarij.vo.data.gift/id/concept/document-type-codes/ec2eae14-3824-42bc-82de-8c440af8c002'
+        elif 'Beleidsbrief' in self.keywords or 'beleidsbrief' in self.keywords:
+            return 'http://kanselarij.vo.data.gift/id/concept/document-type-codes/550a8aff-de89-4952-8bc3-7c754c0b7c7d'
+        elif 'Resolutie' in self.keywords or 'resolutie' in self.keywords:
+            return 'http://kanselarij.vo.data.gift/id/concept/document-type-codes/e76df7c2-addf-4712-acaa-9722473a0368'
         # elif self._type_ref
         #     if self._type_ref == 'Perkament':
         #         return 
