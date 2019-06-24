@@ -58,10 +58,7 @@ class Agenda:
         retval += "\n\tMededelingen:\n"
         for mededeling in self.mededelingen:
             retval += textwrap.indent(str(mededeling) + '\n', '\t\t')
-        retval += "\n\tVaria:\n"
-        for varia in self.varia:
-            retval += textwrap.indent(str(varia) + '\n', '\t\t')
-        retval += "\n\n\tNotulen:\n"
+        retval += "\n\n\tNotulen document:\n"
         if self.notulen:
             retval += textwrap.indent(str(self.notulen) + '\n', '\t\t')
         retval += "\n\n\tAgenda document:\n"
@@ -72,15 +69,11 @@ class Agenda:
 
     @property
     def punten(self):
-        return sorted(filter(lambda p: p.type == 'PUNT', self.agendapunten), key=lambda p: p.volgnr if p.volgnr else 0) # FIXME sortt returns None
+        return sorted(filter(lambda p: not p.is_announcement, self.agendapunten), key=lambda p: p.volgnr if p.volgnr else 0)
 
     @property
     def mededelingen(self):
-        return list(filter(lambda p: p.type == 'MEDEDELING', self.agendapunten))
-
-    @property
-    def varia(self):
-        return list(filter(lambda p: p.type == 'VARIA', self.agendapunten))
+        return sorted(filter(lambda p: p.is_announcement, self.agendapunten), key=lambda p: p.volgnr if p.volgnr else 0)
 
     def link_agenda_doc(self, agenda_docs):
         agenda_doc = find_agenda_document(agenda_docs, self.datum, self.zittingnr)
@@ -100,6 +93,17 @@ class Agenda:
         else:
             logging.warning("Didn't find notulen for agenda {}".format(self.datum))
         return self.notulen
+
+    def link_news_items(self, news_item_lut):
+        try:
+            for ni in news_item_lut[self.datum]:
+                for item in self.agendapunten:
+                    if ni.agenda_item_nr == item.volgnr:
+                        if (item.is_announcement and ni.agenda_item_type == 'MEDEDELING') or \
+                            (not item.is_announcement and ni.agenda_item_type == 'PUNT'):
+                            item.news_item = ni
+        except KeyError:
+            logging.warning("No newsletter available for agenda {}".format(str(self.datum)))
 
     def uri(self, base_uri):
         return base_uri + "id/agendas/" + "{}".format(self.uuid)
@@ -139,7 +143,10 @@ class Agenda:
         # Agenda & Zitting
         for punt in self.agendapunten:
             zitting_triples.append((zitting_uri, ns.BESLUITVORMING['isAangevraagdVoor'], URIRef(punt.procedurestap_uri(base_uri))))
-            triples.append((uri, ns.DCT['hasPart'], URIRef(punt.uri(base_uri))))
+            if punt.has_decision:
+                triples.append((uri, ns.DCT['hasPart'], URIRef(punt.uri(base_uri))))
+            else:
+                triples.append((uri, ns.EXT['mededeling'], URIRef(punt.uri(base_uri))))
             
         if self.notulen:
             # Notulen
@@ -159,189 +166,194 @@ class Agenda:
 
 class Agendapunt():
     """docstring for Agendapunt."""
-    def __init__(self, jaar, zittingnr, volgnr, beslissingsfiche):
+    def __init__(self, volgnr=None, beslissingsfiche=None):
         super().__init__()
         self.uuid = str(uuid.uuid1())
         self.src_uri = ''
         self.procedurestap_uuid = str(uuid.uuid1())
-        self.jaar = jaar
-        self.zittingnr = zittingnr
         self.volgnr = volgnr
 
-        self.type = None
         self.zitting = None
         self.besl_vereist = None
 
         self.beslissingsfiche = beslissingsfiche # doc version
         self.beslissingsfiche_doc = None
-        self.rel_docs = [] # Zowel documenten als notulen
+        self.documents = [] # All document versions related to the agenda item
+        self.decision_documents = [] # Document versions related to the decision of this agenda item
 
         self.news_item = None
 
-
-        self._document_refs = []
         self.gerelateerde_procedurestappen_uris = []
 
     def __str__(self):
-        if self.type == 'PUNT':
-            retval = self.type + ' ' + str(self.volgnr) + '\n'
-        else:
-            retval = str(self.type) + '\n'
-        for doc in self.rel_docs:
-            retval += textwrap.indent(str(doc) + '\n', '\t')
-        return retval
+        return '{}{} ({}/{})'.format('Mededeling' if self.is_announcement else 'Punt', ' ' + str(self.volgnr) if self.volgnr else '', len(self.decision_documents), len(self.documents))
 
     @property
     def title(self):
-        title = self.beslissingsfiche.title
-        if self.type == 'VARIA':
-            if title:
-                title = 'VARIA: ' + title
-            else:
-                title = 'VARIA'
-        return title
+        if self.beslissingsfiche:
+            title = self.beslissingsfiche.title
+            if self.beslissingsfiche.parsed_name.punt_type == 'VARIA':
+                if title:
+                    title = 'VARIA: ' + title
+                else:
+                    title = 'VARIA'
+            return title
+        else:
+            try:
+                return self.documents[0].title
+            except IndexError:
+                return ''
 
     @property
     def short_title(self):
-        return self.beslissingsfiche.short_title
+        if self.beslissingsfiche:
+            return self.beslissingsfiche.short_title
+        else:
+            try:
+                return self.documents[0].short_title
+            except IndexError:
+                return ''
 
+    @property
+    def is_announcement(self):
+        return (not self.beslissingsfiche) or (self.beslissingsfiche.parsed_name.punt_type in ('MEDEDELING', 'VARIA'))
+        
+    @property
+    def has_decision(self):
+        return bool(self.beslissingsfiche)
+
+    @property
+    def confidential(self):
+        return all([doc.confidential for doc in self.decision_documents]) and self.beslissingsfiche.confidential
+        
     def link_document_refs(self, doc_lut, fallback_doc_lut):
-        if self._document_refs:
-            self.rel_docs = []
-            for rel_doc in self._document_refs:
+        if self.beslissingsfiche and self.beslissingsfiche._decision_doc_refs:
+            self.decision_documents = []
+            for rel_doc in self.beslissingsfiche._decision_doc_refs:
                 try:
-                    self.rel_docs.append(doc_lut[rel_doc['source']][0]) # TEMP: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
+                    self.decision_documents.append(doc_lut[rel_doc['source']][0]) # TEMP: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
                 except KeyError as e:
                     try:
                         logging.info('No match found by literal \'dar_rel_docs\'-key {}, trying search by properties'.format(rel_doc['source']))
                         if rel_doc['success']:
-                            self.rel_docs.append(fallback_doc_lut[rel_doc['parsed']][0]) # TEMP: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
+                            self.decision_documents.append(fallback_doc_lut[rel_doc['parsed']][0]) # TEMP: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
                         else:
                             logging.warning('Related doc {} doesn\'t have parsed parts'.format(rel_doc['source']))
                     except KeyError as e:
                         logging.warning('No match found for \'related\' doc {}'.format(rel_doc['source']))
-        return self.rel_docs
+        return self.decision_documents
 
-    def link_news_item(self, news_item_lut):
-        try:
-            for ni in news_item_lut[self.beslissingsfiche._zittingdatum]:
-                if ni.agenda_item_nr == self.volgnr and ni.agenda_item_type == self.type:
-                    self.news_item = ni
-                    break
-        except KeyError:
-            if self.is_beslist():
-                logging.warning("Didn't find news item for agenda item {} that was decided upon".format(str(self)))
-        return self.news_item
-
-    def link_subcase_refs(self, dossiers, procedurestap_base_uri):
-        self.gerelateerde_procedurestappen_uris = []
-        for doc in (self.rel_docs + [self.beslissingsfiche]):
-            for vorig_doc in doc.vorige:
-                try:
-                    if (vorig_doc.datum.year != doc.datum.year) and (vorig_doc.dossier_nr != doc.dossier_nr):
-                        try:
-                            rel_dossier = dossiers[(vorig_doc.datum.year, vorig_doc.dossier_nr)]
-                        except KeyError:
-                            continue
-                        for ap in rel_dossier.agendapunten:
-                            if vorig_doc in ap.rel_docs:
-                                procedurestap_uri = ap.procedurestap_uri(procedurestap_base_uri)
-                                self.gerelateerde_procedurestappen_uris.append(procedurestap_uri)
-                                logging.info('Found related subcase {} for subcase {}'.format(procedurestap_uri, ap.procedurestap_uri(procedurestap_base_uri)))
-                except AttributeError: # If vorig doc isn't an ordinary document 'dossiernummer' property doesn't exist ...
-                    continue
-        self.gerelateerde_procedurestappen_uris = list(set(self.gerelateerde_procedurestappen_uris))
-        return self.gerelateerde_procedurestappen_uris
-
-    def is_beslist(self):
+    def has_decision_content(self):
         """
             Veld 'is beslist' bestaat niet in Doris (of wordt niet correct gebruikt).
             Men zou kunnen redeneren indien alle documenten openbaar -> beslist, maar ...
             Omwille van 'cheat' in Doris, om bv. adviezen IF af te schermen, worden deze op 'uitgesteld' gezet ...
             We gaan er dus van uit dat wanneer er een openbaar document tusssenzit (niet allemaal 'uitgesteld'), er iets beslist is
         """
-        return any([doc.levenscyclus_status == 'Openbaar' for doc in self.rel_docs])
-
-    def is_vertrouwelijk(self):
-        return all([doc.confidential for doc in self.rel_docs]) and self.beslissingsfiche.confidential
+        return self.decision_documents and any([doc.levenscyclus_status == 'Openbaar' for doc in self.decision_documents])
 
     def uri(self, base_uri):
-        return base_uri + "id/agendapunten/" + "{}".format(self.uuid)
+        if self.has_decision:
+            return base_uri + "id/agendapunten/" + "{}".format(self.uuid)
+        else:
+            return base_uri + "id/mededelingen/" + "{}".format(self.uuid)
 
     def procedurestap_uri(self, base_uri):
         return base_uri + "id/procedurestappen/" + "{}".format(self.procedurestap_uuid)
-
-        # Besluit
-        besluit_uuid = str(uuid.uuid1())
-        besluit_uri = URIRef(base_uri + "id/besluiten/" + "{}".format(besluit_uuid))
-        besluit_triples = [
-            (besluit_uri, RDF['type'], ns.BESLUIT['Besluit']),
-            (besluit_uri, ns.MU['uuid'], Literal(besluit_uuid)),
-            (besluit_uri, ns.EXT['beslissingsfiche'], URIRef(self.beslissingsfiche.document.uri(base_uri))),
-        ]
-        if self.short_title:
-            besluit_triples.append((besluit_uri, ns.ELI['title_short'], Literal(self.short_title)))
 
     def triples(self, ns, base_uri):
         # Agendapunt
         uri = URIRef(self.uri(base_uri))
         triples = [
-            (uri, RDF['type'], ns.BESLUIT['Agendapunt']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.DCT['source'], URIRef(self.src_uri)),
             (uri, ns.EXT['prioriteit'], Literal(self.volgnr)),
+            (uri, RDF['type'], ns.BESLUIT['Agendapunt'] if self.has_decision else ns.BESLUITVORMING['Mededeling']),
         ]
+        for doc in self.documents:
+            triples += [
+                (uri, ns.EXT['bevatAgendapuntDocumentversie'] if self.has_decision else ns.EXT['mededelingBevatDocumentversie'], URIRef(doc.uri(base_uri))),
+            ]
 
-        # Procedurestap
-        procedurestap_uri = URIRef(self.procedurestap_uri(base_uri))
-        triples += [
-            (procedurestap_uri, RDF['type'], ns.DBPEDIA['UnitOfWork']),
-            (procedurestap_uri, ns.MU['uuid'], Literal(self.procedurestap_uuid)),
-            (procedurestap_uri, ns.BESLUITVORMING['besloten'], Literal('true' if self.is_beslist() else 'false', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
-            (procedurestap_uri, ns.BESLUITVORMING['isGeagendeerdVia'], uri),
-            (procedurestap_uri, ns.EXT['procedurestapHeeftBesluit'], URIRef(besluit_uri)),
-        ]
-        if self.news_item:
-            triples.append((procedurestap_uri, ns.PROV['generated'], URIRef(self.news_item.uri(base_uri))))
-        # for rel_procedurestap_uri in self.gerelateerde_procedurestappen_uris:
-        #     triples.append((procedurestap_uri, ns.DCT['relation'], URIRef(rel_procedurestap_uri)))
-        
-        # Procedurestap & Agendapunt
-        procedurestap_uri = URIRef(self.procedurestap_uri(base_uri))
-        triples += [
-            (uri, ns.BESLUITVORMING['formeelOK'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),            
-            (procedurestap_uri, ns.BESLUITVORMING['formeelOK'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),            
-            (uri, ns.EXT['wordtGetoondAlsMededeling'], Literal('false' if self.type == 'PUNT' else 'true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
-            (procedurestap_uri, ns.EXT['wordtGetoondAlsMededeling'], Literal('false' if self.type == 'PUNT' else 'true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
-            # besluitvorming:isAangevraagdVoor via Agenda
-            # besluitvorming:vertrouwelijkheid TODO, wordt een bool?
-        ]
-        if self.short_title:
-            triples += [
-                (procedurestap_uri, ns.DCT['alternative'], Literal(self.short_title)),
-                (uri, ns.DCT['alternative'], Literal(self.short_title)),
+        if self.has_decision: # Agenda item with decision
+            # Besluit
+            besluit_uuid = str(uuid.uuid1())
+            besluit_uri = URIRef(base_uri + "id/besluiten/" + "{}".format(besluit_uuid))
+            besluit_triples = [
+                (besluit_uri, RDF['type'], ns.BESLUIT['Besluit']),
+                (besluit_uri, ns.MU['uuid'], Literal(besluit_uuid)),
+                (besluit_uri, ns.DCT['source'], URIRef(self.src_uri)),
+                (besluit_uri, ns.BESLUITVORMING['goedgekeurd'], Literal('true' if self.has_decision_content() else 'false', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+                (besluit_uri, ns.EXT['beslissingsfiche'], URIRef(self.beslissingsfiche.document.uri(base_uri))),
             ]
-        if self.title:
-            triples += [
-                (procedurestap_uri, ns.DCT['title'], Literal(self.title)),
-                (uri, ns.DCT['title'], Literal(self.title)),
-            ]
-        if self.news_item:
-            for theme in self.news_item.themes:
+            if self.short_title:
+                besluit_triples.append((besluit_uri, ns.ELI['title_short'], Literal(self.short_title)))
+            for doc in self.decision_documents:
                 triples += [
-                    (uri, ns.EXT['agendapuntSubject'], URIRef(theme.uri(base_uri))),
-                    (procedurestap_uri, ns.DCT['subject'], URIRef(theme.uri(base_uri))),
+                    (besluit_uri, ns.EXT['documentenVoorBeslissing'], URIRef(doc.uri(base_uri)))
                 ]
-        for mandatee in self.beslissingsfiche.indieners:
+            
+            # Procedurestap
+            procedurestap_uri = URIRef(self.procedurestap_uri(base_uri))
             triples += [
-                (uri, ns.EXT['heeftBevoegdeVoorAgendapunt'], URIRef(mandatee.uri(base_uri))),
-                (procedurestap_uri, ns.BESLUITVORMING['heeftBevoegde'], URIRef(mandatee.uri(base_uri))),
+                (procedurestap_uri, RDF['type'], ns.DBPEDIA['UnitOfWork']),
+                (procedurestap_uri, ns.MU['uuid'], Literal(self.procedurestap_uuid)),
+                (procedurestap_uri, ns.DCT['source'], URIRef(self.src_uri)),
+                (procedurestap_uri, ns.BESLUITVORMING['isGeagendeerdVia'], uri),
+                (procedurestap_uri, ns.EXT['procedurestapHeeftBesluit'], URIRef(besluit_uri)),
             ]
-        for rel_doc in self.rel_docs:
+            if self.news_item:
+                triples.append((procedurestap_uri, ns.PROV['generated'], URIRef(self.news_item.uri(base_uri))))
+            for doc in self.documents:
+                triples += [
+                    (procedurestap_uri, ns.EXT['bevatDocumentversie'], URIRef(doc.uri(base_uri)))
+                ]            # for rel_procedurestap_uri in self.gerelateerde_procedurestappen_uris:
+            #     triples.append((procedurestap_uri, ns.DCT['relation'], URIRef(rel_procedurestap_uri)))
+            
+            # Procedurestap & Agendapunt
+            procedurestap_uri = URIRef(self.procedurestap_uri(base_uri))
             triples += [
-                (uri, ns.EXT['bevatAgendapuntDocumentversie'], URIRef(rel_doc.uri(base_uri))),
-                (procedurestap_uri, ns.EXT['bevatDocumentversie'], URIRef(rel_doc.uri(base_uri)))
+                # (uri, ns.BESLUITVORMING['formeelOK'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),            
+                # (procedurestap_uri, ns.BESLUITVORMING['formeelOK'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),            
+                (uri, ns.EXT['wordtGetoondAlsMededeling'], Literal('true' if self.is_announcement else 'false', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+                (procedurestap_uri, ns.EXT['wordtGetoondAlsMededeling'], Literal('true' if self.is_announcement else 'false', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+                # besluitvorming:isAangevraagdVoor via Agenda
+                # besluitvorming:vertrouwelijkheid TODO, wordt een bool?
             ]
-        # ext:subcaseProcedurestapFase # TODO, na aanmaken v procedurestappen de fase materializen adhv aantal in dossier? Low prio
-
-        return besluit_triples + triples
+            if self.short_title:
+                triples += [
+                    (procedurestap_uri, ns.DCT['alternative'], Literal(self.short_title)),
+                    (uri, ns.DCT['alternative'], Literal(self.short_title)),
+                ]
+            if self.title:
+                triples += [
+                    (procedurestap_uri, ns.DCT['title'], Literal(self.title)),
+                    (uri, ns.DCT['title'], Literal(self.title)),
+                ]
+            if self.news_item:
+                for theme in self.news_item.themes:
+                    triples += [
+                        (uri, ns.EXT['agendapuntSubject'], URIRef(theme.uri(base_uri))),
+                        (procedurestap_uri, ns.DCT['subject'], URIRef(theme.uri(base_uri))),
+                    ]
+            for mandatee in self.beslissingsfiche.indieners:
+                triples += [
+                    (uri, ns.EXT['heeftBevoegdeVoorAgendapunt'], URIRef(mandatee.uri(base_uri))),
+                    (procedurestap_uri, ns.BESLUITVORMING['heeftBevoegde'], URIRef(mandatee.uri(base_uri))),
+                ]
+            # ext:subcaseProcedurestapFase # TODO, na aanmaken v procedurestappen de fase materializen adhv aantal in dossier? Low prio
+            triples += besluit_triples
+        else: # Agenda item without decision
+            try:
+                triples += [
+                    # (uri, ns.EXT['created'], URIRef(rel_doc.uri(base_uri))),
+                    # (uri, ns.EXT['modified'], URIRef(rel_doc.uri(base_uri))),
+                ]
+                full_title = (self.title + '\n') if self.title else '' + self.short_title if self.short_title else ''
+                if full_title:
+                    triples += [
+                        (uri, ns.EXT['title'], Literal(full_title)),
+                    ]
+            except IndexError:
+                pass
+        return triples

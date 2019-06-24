@@ -4,8 +4,7 @@ import logging
 
 from .doris_export_parsers import p_doc_name, p_oc_doc_name
 from .model.document_version import DocumentVersion
-from .model.document_name import VrBeslissingsficheName, OcBeslissingsficheName, VersionedDocumentName
-from .model.agenda import Agendapunt
+from .model.document_name import VrBeslissingsficheName, VrDocumentName, AgendaName, VrNotulenName, OcBeslissingsficheName, VersionedDocumentName
 from .create_files import create_file
 
 def titles_from_dar_onderwerp(dar_onderwerp):
@@ -29,7 +28,7 @@ def titles_from_dar_onderwerp(dar_onderwerp):
 
 def create_files_document_versions_agenda_items(parsed_import, src_base_uri, file_metadata_lut, file_uuid_lut=None):
     files = []
-    documenten = []
+    document_versions = []
     agendapunten = []
     for doc_src in parsed_import:
         if 'dar_fiche_type' in doc_src:
@@ -46,6 +45,7 @@ def create_files_document_versions_agenda_items(parsed_import, src_base_uri, fil
         doc.src_uri = src_base_uri + "{}-{}".format(doc.id, doc.mufile.extension) # object_ids in documentum arent unique, document type is needed for uniqueness
         doc._zittingdatum = doc_src['dar_date_vergadering']['parsed'] if doc_src['dar_date_vergadering']['success'] else None
         doc._zittingnr = doc_src['dar_verg_nr']['parsed']
+        doc._puntnr = doc_src['dar_volgnummer']['parsed'] if doc_src['dar_volgnummer']['success'] else None
         doc.confidential = doc_src['dar_restricted']['parsed'] if doc_src['dar_restricted']['success'] else True
         doc.err_date = doc_src['dar_err_date']['parsed'] if doc_src['dar_err_date']['success'] else None
         doc.besl_vereist = doc_src['dar_besl_vereist']['parsed']
@@ -61,8 +61,8 @@ def create_files_document_versions_agenda_items(parsed_import, src_base_uri, fil
                     r['success'] = True
                 except ValueError:
                     r['success'] = False
-                doc._document_refs.append(r)
-        documenten.append(doc)
+                doc._previous_doc_refs.append(r)
+        document_versions.append(doc)
 
         if doc_src['object_name']['success']:
             try:
@@ -76,31 +76,6 @@ def create_files_document_versions_agenda_items(parsed_import, src_base_uri, fil
 
             if 'dar_fiche_type' in doc_src: # Beslissingsfiches
                 doc._type_ref = doc_src['dar_fiche_type']['parsed'] if doc_src['dar_fiche_type']['success'] else None
-
-                if doc._zittingdatum:
-                    jaar = doc._zittingdatum.year
-                elif isinstance(doc.parsed_name, VrBeslissingsficheName):
-                    jaar = doc.parsed_name.year
-                elif isinstance(doc.parsed_name, OcBeslissingsficheName):
-                    jaar = doc.parsed_name.datum.year
-                else:
-                    logging.warning("Couldn't determine session year from separate metadata field nor document name for document version {}".format(doc.source_name))
-                if doc._zittingnr:
-                    zitting_nr = doc._zittingnr
-                elif isinstance(doc.parsed_name, VrBeslissingsficheName):
-                    zitting_nr = doc.parsed_name.zitting_nr
-                else:
-                    logging.warning("Couldn't determine session number from separate metadata field nor document name for document version {}".format(doc.source_name))
-                if doc_src['dar_volgnummer']['success']:
-                    volgnr = doc_src['dar_volgnummer']['parsed']
-                elif isinstance(doc.parsed_name, VrBeslissingsficheName) or isinstance(doc.parsed_name, OcBeslissingsficheName):
-                    volgnr = doc.parsed_name.punt_nr
-                else:
-                    logging.warning("Couldn't determine agenda item number from separate metadata field nor document name for document version {}".format(doc.source_name))
-                agendapunt = Agendapunt(jaar, zitting_nr, volgnr, doc)
-                if isinstance(doc.parsed_name, VrBeslissingsficheName):
-                    agendapunt.type = agendapunt.beslissingsfiche.parsed_name.punt_type # PUNT, MEDEDELING or VARIA
-                agendapunt.besl_vereist = doc_src['dar_besl_vereist']['parsed']
                 if doc_src['dar_rel_docs']['success']:
                     for doc_ref in doc_src['dar_rel_docs']['parsed']:
                         r = {'source': doc_ref}
@@ -112,14 +87,29 @@ def create_files_document_versions_agenda_items(parsed_import, src_base_uri, fil
                             r['success'] = True
                         except ValueError:
                             r['success'] = False
-                        agendapunt._document_refs.append(r)
+                        doc._decision_doc_refs.append(r)
                 else:
-                    agendapunt._document_refs = []
-                agendapunten.append(agendapunt)
+                    doc._decision_doc_refs = None
             else: # All other documents
                 doc._type_ref = doc_src['dar_doc_type']['parsed'] if doc_src['dar_doc_type']['success'] else None
+    
+            if not doc._zittingdatum:
+                if isinstance(doc.parsed_name, (VrDocumentName, AgendaName)):
+                    doc._zittingdatum = doc.parsed_name.datum
+                else:
+                    logging.warning("Couldn't determine session date from separate metadata field nor document name for document version {}".format(doc.source_name))
+            if not doc._zittingnr:
+                if isinstance(doc.parsed_name, (VrBeslissingsficheName, VrNotulenName)):
+                    doc._zittingnr = doc.parsed_name.zitting_nr
+                else:
+                    logging.warning("Couldn't determine session number from separate metadata field nor document name for document version {}".format(doc.source_name))
+            if doc._puntnr is None:
+                if isinstance(doc.parsed_name, (VrBeslissingsficheName, OcBeslissingsficheName)):
+                    doc._puntnr = doc.parsed_name.punt_nr
+                else:
+                    logging.info("Couldn't determine agenda item number from separate metadata field nor document name for document version {}".format(doc.source_name))
 
-    return files, documenten, agendapunten
+    return files, document_versions
 
 def group_doc_vers_by_source_name(doc_vers):
     doc_vers_by_source_name = {}

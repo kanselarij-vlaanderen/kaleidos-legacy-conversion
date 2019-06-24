@@ -357,7 +357,7 @@ def p_agendapunt_name(val):
         version = LATIN_ADVERBIAL_NUMERAL_2_INT[agendapunt_match.group(11).lower()]
     else:
         version = None
-    return VrBeslissingsficheName(context, year, verg_nummer, number, punt_type=type), version
+    return VrBeslissingsficheName(context, year, verg_nummer, number, type), version
 
 def p_oc_agendapunt_name(val):
     """ OC 20060906 NOT PT 04 """

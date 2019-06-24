@@ -33,6 +33,7 @@ class DocumentVersion:
         self.document = None # Reference to parent document
         self._zittingdatum = None
         self._zittingnr = None
+        self._puntnr = None
         self.confidential = None
         self.err_date = None
         self.levenscyclus_status = None
@@ -45,7 +46,8 @@ class DocumentVersion:
         self.indieners = []
 
         self._type_ref = ''
-        self._document_refs = []
+        self._decision_doc_refs = []
+        self._previous_doc_refs = []
         self._indiener_refs = []
 
     def __str__(self):
@@ -63,9 +65,9 @@ class DocumentVersion:
 
     def link_document_refs(self, doc_lut, fallback_doc_lut):
         """ doc_list is a sorted list of all document objects than can be searched to link to these referenced documents"""
-        if self._document_refs:
+        if self._previous_doc_refs:
             self.vorige = []
-            for rel_doc in self._document_refs:
+            for rel_doc in self._previous_doc_refs:
                 try:
                     self.vorige.append(doc_lut[rel_doc['source']][0]) # TEMP: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
                 except KeyError as e:

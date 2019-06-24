@@ -61,7 +61,6 @@ doc_parsed = create_files_document_versions_agenda_items(parsed_doc_source, conf
 fiche_parsed = create_files_document_versions_agenda_items(parsed_fiche_source, config.DORIS_EXPORT_URI, file_metadata_lut, file_uuid_lut)
 files = doc_parsed[0] + fiche_parsed[0]
 document_versions = doc_parsed[1] + fiche_parsed[1]
-agenda_items = doc_parsed[2] + fiche_parsed[2]
 parsed_doc_vers = list(filter(lambda d: isinstance(d.parsed_name, DocumentName), document_versions))
 agenda_doc_vers = list(filter(lambda d: isinstance(d.parsed_name, AgendaName), parsed_doc_vers))
 notulen_doc_vers = list(filter(lambda d: isinstance(d.parsed_name, VrNotulenName), document_versions))
@@ -70,7 +69,7 @@ fiche_doc_vers = list(filter(lambda d: isinstance(d.parsed_name, VrBeslissingsfi
 unparsed_doc_vers = list(filter(lambda d: d.parsed_name is None, document_versions))
 
 
-agendas = create_agendas(agenda_items)
+agendas = create_agendas(document_versions)
 
 connection = pymysql.connect(**config.NIEUWSBERICHTEN_DB_CONFIG, cursorclass=pymysql.cursors.DictCursor)
 news_items = create_news_items(connection, config.NIEUWSBERICHTEN_EXPORT_URI)
@@ -118,24 +117,20 @@ for news_item in news_items:
 
 i = 0
 found_rel_docs, total_rel_docs = 0, 0
-found_nis, expected_nis = 0, 22136
+found_nis, expected_nis = 0, len(news_items)
 news_items_by_agenda_date = group_news_items_by_agenda_date(news_items)
 for agenda in agendas:
-    agenda.link_agenda_doc(agenda_doc_vers)
-    agenda.link_notulen_doc(notulen_doc_vers)
+    # Link news items + stats
+    if agenda.datum >= config.BEGINDATUM_NIEUWSBERICHTEN:
+        agenda.link_news_items(news_items_by_agenda_date)
     for ap in agenda.agendapunten:
         # Link documents + stats
         ap.link_document_refs(documents_by_stuknummer, doc_vers_by_stuknummer_parsed)
-        if ap._document_refs:
-            if agenda.datum and (agenda.datum > config.BEGINDATUM_DORIS_REFERENTIES):
-                total_rel_docs += len(ap._document_refs)
-                found_rel_docs += len(ap.rel_docs)
-
-        # Link news items + stats
-        if agenda.datum >= config.BEGINDATUM_NIEUWSBERICHTEN:
-            ni = ap.link_news_item(news_items_by_agenda_date)
-            if ni:
-                found_nis += 1
+        if ap.beslissingsfiche and ap.beslissingsfiche._decision_doc_refs and (agenda.datum > config.BEGINDATUM_DORIS_REFERENTIES):
+            total_rel_docs += len(ap.beslissingsfiche._decision_doc_refs)
+            found_rel_docs += len(ap.decision_documents)
+        if ap.news_item:
+            found_nis += 1
 
 logging.info("Found {} out of {} documents ({:.1f}%) referenced in {} agendapoints".format(found_rel_docs, total_rel_docs, found_rel_docs/total_rel_docs*100, i))
 logging.info("Found {} out of {} expected news items ({:.1f}%) for {} agendapoints".format(found_nis, expected_nis, found_nis/expected_nis*100, i))
@@ -148,11 +143,11 @@ submitters_lut, persons = create_submitters_by_ref(agendas, administrations, sub
 
 for agenda in agendas:
     for ap in agenda.agendapunten:
-        # Link subcases
-        ap.link_subcase_refs(dossiers_by_year_dossiernr, config.KALEIDOS_API_URI) # Needs dossiers
-        ap.beslissingsfiche.link_indiener_refs(submitters_lut, administrations)
-        for rel_doc in ap.rel_docs:
+        # Link submitters
+        if ap.beslissingsfiche:
             ap.beslissingsfiche.link_indiener_refs(submitters_lut, administrations)
+        # for rel_doc in ap.documents:
+        #     rel_doc.link_indiener_refs(submitters_lut, administrations)
 
 
 if __name__ == "__main__":

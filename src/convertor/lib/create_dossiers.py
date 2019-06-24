@@ -14,7 +14,7 @@ def create_dossiers(agendas):
     for agenda in agendas:
         for agendapunt in agenda.agendapunten:
             try:
-                dossiernr_doc_name = next(doc.parsed_name for doc in agendapunt.rel_docs if isinstance(doc.parsed_name, VrDocumentName))
+                dossiernr_doc_name = next(doc.parsed_name for doc in agendapunt.documents if isinstance(doc.parsed_name, VrDocumentName))
                 year = dossiernr_doc_name.datum.year
                 dossiernr = dossiernr_doc_name.dossier_nr
                 doc_type = dossiernr_doc_name.doc_type
@@ -34,7 +34,7 @@ def create_dossiers(agendas):
                 if dossiernr:
                     dossier.nummer = dossiernr
             dossier.agendapunten.append(agendapunt)
-            for rel_doc in agendapunt.rel_docs:
+            for rel_doc in agendapunt.documents:
                 for doc in filter(lambda d: isinstance(d.parsed_name, VrDocumentName), rel_doc.vorige):
                     n = doc.parsed_name
                     try:

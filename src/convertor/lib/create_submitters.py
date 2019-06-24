@@ -48,7 +48,8 @@ def create_submitters_by_ref(agendas, administrations, submitter_uuid_lut):
             logging.warning("No active government found on {}".format(date))
             continue
         for agendapunt in agenda.agendapunten:
-            for rel_doc in [agendapunt.beslissingsfiche] + agendapunt.rel_docs:
+            rel_docs = agendapunt.documents + [agendapunt.beslissingsfiche] if agendapunt.beslissingsfiche else []
+            for rel_doc in rel_docs:
                 submitter_refs = rel_doc._indiener_refs
                 for submitter in submitter_refs:
                     if (str(submitter) in submitters_by_ref) or (str(submitter)+gov.uuid in submitters_by_ref):
