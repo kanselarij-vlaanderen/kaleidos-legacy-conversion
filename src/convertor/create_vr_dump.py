@@ -18,7 +18,7 @@ from lib.create_agendas import create_agendas
 from lib.create_submitters import load_submitter_mapping, create_submitters_by_ref
 from lib.search import find_agenda_document, find_notulen_document, find_agenda
 
-from lib.create_news_items import create_news_items, group_news_items_by_agenda_date
+from lib.create_news_items import create_news_items, group_news_items
 # from import_nieuwsberichten.role_creator import create_roles, roles_by_label
 from lib.create_themes import create_themes, themes_by_id, load_theme_mapping
 from lib.create_files import load_file_mapping
@@ -118,12 +118,13 @@ for news_item in news_items:
 i = 0
 found_rel_docs, total_rel_docs = 0, 0
 found_nis, expected_nis = 0, len(news_items)
-news_items_by_agenda_date = group_news_items_by_agenda_date(news_items)
+news_items_lut = group_news_items(news_items)
 for agenda in agendas:
     # Link news items + stats
     if agenda.datum >= config.BEGINDATUM_NIEUWSBERICHTEN:
-        agenda.link_news_items(news_items_by_agenda_date)
+        agenda.link_news_items(news_items_lut)
     for ap in agenda.agendapunten:
+        i += 1
         # Link documents + stats
         ap.link_document_refs(documents_by_stuknummer, doc_vers_by_stuknummer_parsed)
         if ap.beslissingsfiche and ap.beslissingsfiche._decision_doc_refs and (agenda.datum > config.BEGINDATUM_DORIS_REFERENTIES):

@@ -100,7 +100,7 @@ class Agenda:
         elif self.datum in news_item_lut: # Old news item records without session number
             nis = news_item_lut[self.datum]
         else:
-            logging.warning("No newsletter available for agenda {}".format(str(self.datum)))
+            logging.warning("No newsletter available for agenda {} - {}".format(self.datum, self.zittingnr))
             return
         for ni in nis:
             for item in self.agendapunten:
