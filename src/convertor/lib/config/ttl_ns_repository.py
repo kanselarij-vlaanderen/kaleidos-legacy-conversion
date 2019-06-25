@@ -9,6 +9,7 @@ VALIDATION = Namespace("http://mu.semte.ch/vocabularies/validation/")
 from rdflib.namespace import RDF
 RDFS = Namespace("https://www.w3.org/2000/01/rdf-schema#")
 
+OC = Namespace("http://mu.semte.ch/vocabularies/ext/oc")
 BESLUIT = Namespace("http://data.vlaanderen.be/ns/besluit#")
 BESLUITVORMING = Namespace("http://data.vlaanderen.be/ns/besluitvorming#")
 GENERIEK = Namespace("http://data.vlaanderen.be/ns/generiek#")

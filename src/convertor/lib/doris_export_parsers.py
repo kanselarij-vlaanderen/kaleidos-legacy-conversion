@@ -3,7 +3,7 @@
 import datetime
 import re
 
-from .model.document_name import VrDocumentName, AgendaName, VrNotulenName, VrBeslissingsficheName, OcDocumentName, OcAgendaName, OcVerslagName, OcNotulenName, OcBeslissingsficheName
+from .model.document_name import VrDocumentName, AgendaName, VrNotulenName, VrBeslissingsficheName, OcDocumentName, OcAgendaName, OcVerslagName, OcNotulenName, OcNotificatieName
 from .code_lists.numbering import LATIN_ADVERBIAL_NUMERAL_2_INT
 from .code_lists.governments import REGERINGEN
 from .code_lists.doris import AARDEN_BESLISSING, TYPES_VERGADERING, TYPES_DOCUMENT, LEVENSCYCLUS_STATUSSEN
@@ -64,9 +64,21 @@ def p_number(val):
 
 def p_oc_session_number(val):
     try:
-        return p_number(val.split('/')[-1]) # TEMP
-    except Exception as e:
+        return p_number(val.split('/')[-1])
+    except IndexError as e:
         raise ValueError("Invalid number: " + str(e))
+
+def p_oc_priority(val):
+    match = re.match(r"^(\d+)([a-fA-F])?", val)
+    if match:
+        priority = int(match.group(1))
+        if match.group(2):
+            sub_priority = match.group(2).lower()
+        else:
+            sub_priority = ''
+        return priority, sub_priority
+    else:
+        raise ValueError("Invalid oc item priority: " + str(val))
 
 def p_ministers_old_style(val):
     """
@@ -298,7 +310,7 @@ def p_oc_doc_name(val):
             OC 20051116 PV 13
             OC 20170220 NOTULEN
         """
-        docname_match = re.match(r"OC (\d{4})(\d{2})(\d{2}) (?:(?:NOTULEN)|(?:PV (\d+)))$", val)
+        docname_match = re.match(r"OC (\d{4})(\d{2})(\d{2}) (?:(?:NOTULEN)|(?:PV (?:\d+\/)?(\d+)))$", val)
         if not docname_match:
             raise ValueError('\'{}\' isn\'t a valid notulen document name'.format(val))
         year = int(docname_match.group(1))
@@ -359,21 +371,21 @@ def p_agendapunt_name(val):
         version = None
     return VrBeslissingsficheName(context, year, verg_nummer, number, type), version
 
-def p_oc_agendapunt_name(val):
+def p_oc_notificatie_name(val):
     """ OC 20060906 NOT PT 04 """
     agendapunt_match = re.match(r"OC (\d{4})(\d{2})(\d{2}) NOT PT (\d{2})", val)
     if not agendapunt_match:
-        raise ValueError("'{}' isn't a valid beslissingsfiche name".format(val))
+        raise ValueError("'{}' isn't a valid notification name".format(val))
     year = int(agendapunt_match.group(1))
     month = int(agendapunt_match.group(2))
     day = int(agendapunt_match.group(3))
     date = datetime.date(year, month, day)
     number = int(agendapunt_match.group(4).strip())
-    return OcBeslissingsficheName(date, number)
+    return OcNotificatieName(date, number)
 
-def p_oc_fed_doc_name(val):
+def p_oc_fed_case_name(val):
     """ 2016C96610.001 """
-    doc_matches = re.finditer(r"(\()?(\d{4}[A-Z]\d{5}.\d{3})(\))?", val)
+    doc_matches = re.finditer(r"(\()?(\d{4}[A-Z]\d{5}\.\d{3})(\))?", val)
     names = []
     for doc_match in doc_matches:
         doc_name = doc_match.group(2)

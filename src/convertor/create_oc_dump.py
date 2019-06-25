@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import itertools
 import logging
 import os
 import rdflib
@@ -8,23 +9,14 @@ import config
 from lib.util.import_helpers import import_csv
 from lib.config.oc_export_parsing_map import custom_trans_document, custom_trans_fiche
 import lib.config.ttl_ns_repository as ns
-from lib.model.document_version import DocumentVersion
-from lib.model.document import Document
-from lib.model.document_name import DocumentName, OcDocumentName, OcAgendaName, OcNotulenName
-from lib.document_version_creator import create_files_document_versions_agenda_items, group_doc_vers_by_source_name, group_doc_vers_by_parsed_name, group_doc_vers_by_object_id
+from lib.model.oc import Session, AgendaItem, Case
+from lib.model.document_name import DocumentName, OcDocumentName, OcAgendaName, OcNotulenName, OcNotificatieName
 
-from lib.create_agendas import create_agendas
-from lib.search import find_agenda_document, find_notulen_document, find_agenda
-
-from lib.create_news_items import create_news_items, group_news_items_by_agenda_date
-# from import_nieuwsberichten.role_creator import create_roles, roles_by_label
-from lib.create_themes import create_themes, themes_by_id, load_theme_mapping
-from lib.create_files import load_file_mapping
-
-from lib.create_document_types import create_document_types
-from lib.create_dossiers import create_dossiers
-from lib.create_administrations import create_administrations
 from lib.create_submitters import load_governing_body_mapping, governing_body_uri
+from lib.create_files import create_file, load_file_mapping
+
+from lib.doris_export_parsers import p_oc_fed_case_name
+
 from load_file_metadata import load_file_metadata
 
 ###########################################################
@@ -50,117 +42,110 @@ parsed_fiche_source = import_csv(config.EXPORT_FILES['OC']['fiche'],
                                  config.DORIS_EXPORT_ENCODING,
                                  custom_trans_fiche)
 
-theme_uuid_lut = load_theme_mapping(config.THEME_MAPPING_FILE_PATH)
-
 governing_body_uuid_lut = load_governing_body_mapping(config.SUBMITTER_MAPPING_FILE_PATH)
 
 ###########################################################
-# CONVERT TO OBJECT MODEL
-###########################################################
-doc_parsed = create_files_document_versions_agenda_items(parsed_doc_source, file_metadata_lut, file_uuid_lut)
-fiche_parsed = create_files_document_versions_agenda_items(parsed_fiche_source, file_metadata_lut, file_uuid_lut)
-files = doc_parsed[0] + fiche_parsed[0]
-document_versions = doc_parsed[1] + fiche_parsed[1]
-agenda_items = doc_parsed[2] + fiche_parsed[2]
-parsed_doc_vers = list(filter(lambda d: isinstance(d.parsed_name, OcDocumentName), document_versions))
-agenda_doc_vers = list(filter(lambda d: isinstance(d.parsed_name, OcAgendaName), parsed_doc_vers))
-notulen_doc_vers = list(filter(lambda d: isinstance(d.parsed_name, OcNotulenName), document_versions))
-ordinary_doc_vers = list(filter(lambda d: isinstance(d.parsed_name, OcDocumentName), parsed_doc_vers))
-# fiche_doc_vers = list(filter(lambda d: isinstance(d.parsed_name, VrBeslissingsficheName), parsed_doc_vers))
-unparsed_doc_vers = list(filter(lambda d: d.parsed_name is None, document_versions))
 
+all_source = parsed_doc_source + parsed_fiche_source
 
-agendas = create_agendas(agenda_items)
+sessions = []
+files = []
+cases_by_id = {}
 
-doc_types_by_label = create_document_types()
+def by_session(doc_src):
+    return doc_src['dar_date_vergadering']['parsed']
 
+def by_item(doc_src):
+    return doc_src['dar_volgnummer']['parsed']
 
-###########################################################
-# LINK REFERENCES
-###########################################################
-documents_by_stuknummer = group_doc_vers_by_source_name(document_versions)
-doc_vers_by_stuknummer_parsed = group_doc_vers_by_parsed_name(agenda_doc_vers + notulen_doc_vers + ordinary_doc_vers)
+def is_agenda(doc_src):
+    return (doc_src['object_name']['success'] and isinstance(doc_src['object_name']['parsed'], OcAgendaName)) or \
+        (doc_src['dar_aard']['source'] == 'Agenda')
 
-documents_by_name = {}
+def is_meeting_record(doc_src):
+    return doc_src['object_name']['success'] and isinstance(doc_src['object_name']['parsed'], OcNotulenName)
+    
+def is_notification(doc_src):
+    return doc_src['object_name']['success'] and isinstance(doc_src['object_name']['parsed'], OcNotificatieName)
 
-for document_version in document_versions:
-    if document_version.parsed_name and isinstance(document_version.parsed_name, DocumentName):
-        name = document_version.parsed_name.name()
-    else:
-        name = document_version.source_name
-    if document_version.version:
-        version = document_version.version
-    else:
-        version = 1
+valid_doc_versions = list(filter(lambda d: d['dar_date_vergadering']['success'], all_source))
+valid_doc_versions = sorted(valid_doc_versions, key=by_session)
+docs_per_session = itertools.groupby(valid_doc_versions, by_session)
+for session_date, docs_1 in docs_per_session:
+    docs_1 = list(docs_1)
+    session = Session(session_date)
+    sessions.append(session)
     try:
-        document = documents_by_name[name]
-        if version in document.document_versions.keys():
-            logging.warning("Already a version '{}' in the versions collection of document '{}' ... skipping".format(version, name))
-        else:
-            document.document_versions[version] = document_version
-    except KeyError:
-        document = Document(document_version)
-        documents_by_name[name] = document
-    document_version.link_document_refs(documents_by_stuknummer, doc_vers_by_stuknummer_parsed)
-    document_version.link_type_refs(doc_types_by_label)
-
-# roles_by_label = roles_by_label(roles)
-
-
-i = 0
-found_rel_docs, total_rel_docs = 0, 0
-for agenda in agendas:
-    agenda.link_agenda_doc(agenda_doc_vers)
-    agenda.link_notulen_doc(notulen_doc_vers)
-    for ap in agenda.agendapunten:
-        # Link documents + stats
-        ap.link_document_refs(documents_by_stuknummer, doc_vers_by_stuknummer_parsed)
-        if ap._document_refs:
-            if agenda.datum and (agenda.datum > config.BEGINDATUM_DORIS_REFERENTIES):
-                total_rel_docs += len(ap._document_refs)
-                found_rel_docs += len(ap.rel_docs)
-    print(agenda)
-
-logging.info("Found {} out of {} documents ({:.1f}%) referenced in {} agendapoints".format(found_rel_docs, total_rel_docs, found_rel_docs/total_rel_docs*100, i))
-
-
-dossiers_by_year_dossiernr = create_dossiers(agendas) # Requires agendapunt.rel_docs to be linked
-
-administrations = create_administrations()
-
-submitters_lut, persons = create_submitters_by_ref(agendas, administrations, submitter_uuid_lut)
-import pdb; pdb.set_trace()
-for s in submitters_lut.values():
-    print(s)
-import pdb; pdb.set_trace()
-
-for agenda in agendas:
-    for ap in agenda.agendapunten:
-        ap.beslissingsfiche.link_indiener_refs(submitters_lut, administrations)
-        for rel_doc in ap.rel_docs:
-            ap.beslissingsfiche.link_indiener_refs(submitters_lut, administrations)
+        file = create_file(next(filter(is_agenda, docs_1)), file_metadata_lut, None, file_uuid_lut)
+        files.append(file)
+        session.agenda = file
+    except (TypeError, StopIteration):
+        logging.warning("Didn't find agenda doc for session {}".format(session.started_at))
+    try:
+        file = create_file(next(filter(is_meeting_record, docs_1)), file_metadata_lut, None, file_uuid_lut)
+        files.append(file)
+        session.meeting_record = file
+    except (TypeError, StopIteration):
+        logging.warning("Didn't find meeting record (notulen) doc for session {}".format(session.started_at))
+    # import pdb; pdb.set_trace()
+    # Group by agenda item
+    valid_item_docs = list(filter(lambda src: src['dar_volgnummer']['success'], docs_1))
+    valid_item_docs = sorted(valid_item_docs, key=by_item)
+    docs_per_agenda_item = itertools.groupby(valid_item_docs, by_item)
+    for priorities, docs_2 in docs_per_agenda_item:
+        priority, sub_priority = priorities
+        docs_2 = list(docs_2)
+        if priority > 0: # Regular items
+            item = AgendaItem(priority, docs_2[0]['dar_onderwerp']['parsed'], sub_priority)
+            session.agenda_items.append(item)
+            try:
+                src = next(filter(is_notification, docs_2))
+                file = create_file(src, file_metadata_lut, None, file_uuid_lut)
+                files.append(file)
+                item.notification = file
+                item.subject = src['dar_onderwerp']['parsed']
+                if src['dar_indiener_samenvatting']['success']:
+                    for ind in src['dar_indiener_samenvatting']['parsed']:
+                        try:
+                            uri = governing_body_uri(config.KALEIDOS_API_URI, governing_body_uuid_lut[ind])
+                            item.submitter_uris.append(uri)
+                        except KeyError:
+                            pass
+                try:
+                    case_ref = next(filter(lambda c: not c[1], p_oc_fed_case_name(src['dar_onderwerp']['source'])))
+                    try:
+                        item.case = cases_by_id[case_ref[0]]
+                    except KeyError:
+                        cases_by_id[case_ref[0]] = Case(case_ref[0])
+                        item.case = cases_by_id[case_ref[0]]
+                except StopIteration:
+                    pass
+            except (TypeError, StopIteration):
+                logging.warning("Didn't find notification doc for agenda {} item {}{}".format(session.started_at, priority, sub_priority))
+                src = None
+            for doc in docs_2:
+                if not doc == src:
+                    file = create_file(doc, file_metadata_lut, None, file_uuid_lut)
+                    files.append(file)
+                    item.documents.append(file)
+# Sort sessions by date
+sessions.sort(key=lambda s: session.started_at)
 
 
 if __name__ == "__main__":
     g = rdflib.Graph(identifier=rdflib.URIRef(config.GRAPH_NAME))
 
-    for doc_ver in document_versions:
-        for triple in doc_ver.triples(ns, config.KALEIDOS_API_URI, config.DORIS_EXPORT_URI):
+    for session in sessions:
+        print(session)
+        for triple in session.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
-
-    for doc in documents_by_name.values():
-        for triple in doc.triples(ns, config.KALEIDOS_API_URI):
-            g.add(triple)
-
-    for agenda in agendas:
-        for triple in agenda.triples(ns, config.KALEIDOS_API_URI):
-            g.add(triple)
-        for ap in agenda.punten:
-            for triple in ap.triples(ns, config.KALEIDOS_API_URI, config.DORIS_EXPORT_URI):
+        for item in session.agenda_items:
+            print(item)
+            for triple in item.triples(ns, config.KALEIDOS_API_URI):
                 g.add(triple)
-
-    for dossier in dossiers_by_year_dossiernr.values():
-        for triple in dossier.triples(ns, config.KALEIDOS_API_URI):
+        print('\n')
+    for case in cases_by_id.values():
+        for triple in case.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
 
     filename = 'kaleidos_oc.ttl'

@@ -4,7 +4,7 @@ import logging
 
 from .doris_export_parsers import p_doc_name, p_oc_doc_name
 from .model.document_version import DocumentVersion
-from .model.document_name import VrBeslissingsficheName, VrDocumentName, AgendaName, VrNotulenName, OcBeslissingsficheName, VersionedDocumentName
+from .model.document_name import VrBeslissingsficheName, VrDocumentName, AgendaName, VrNotulenName, VersionedDocumentName
 from .create_files import create_file
 
 def titles_from_dar_onderwerp(dar_onderwerp):
@@ -105,7 +105,7 @@ def create_files_document_versions_agenda_items(parsed_import, src_base_uri, fil
                 else:
                     logging.warning("Couldn't determine session number from separate metadata field nor document name for document version {}".format(doc.source_name))
             if doc._puntnr is None:
-                if isinstance(doc.parsed_name, (VrBeslissingsficheName, OcBeslissingsficheName)):
+                if isinstance(doc.parsed_name, VrBeslissingsficheName):
                     doc._puntnr = doc.parsed_name.punt_nr
                 else:
                     logging.info("Couldn't determine agenda item number from separate metadata field nor document name for document version {}".format(doc.source_name))

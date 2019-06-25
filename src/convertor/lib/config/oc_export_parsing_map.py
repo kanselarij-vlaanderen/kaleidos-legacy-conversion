@@ -24,7 +24,7 @@ custom_trans_document = {
     'dar_doc_type': {'parser': parsers.p_doc_type, 'required': False},
     'dar_verg_nr': {'parser': parsers.p_oc_session_number, 'required': True},
     # 'dar_aanvullend': {'parser': parsers.p_doc_name, 'required': False}, # Werd vroeger gebruikt, 'required': False}, nu niet meer
-    'dar_volgnummer': {'parser': parsers.p_number, 'required': False},
+    'dar_volgnummer': {'parser': parsers.p_oc_priority, 'required': False},
     'dar_levenscyclus_status': {'parser': parsers.p_lifecycle_state, 'required': False},
     # 'dar_besl_vereist': {'parser': parsers.p_true_false, 'required': False}, # Wordt niet gebruikt
     # 'dar_onderwerp': {'parser': , 'required': False},
@@ -50,14 +50,14 @@ custom_trans_document = {
 
 custom_trans_fiche = {
     'r_object_id': {'parser': parsers.p_object_id, 'required': True},
-    'object_name': {'parser': parsers.p_oc_agendapunt_name, 'required': False},
+    'object_name': {'parser': parsers.p_oc_notificatie_name, 'required': False},
     'a_content_type': {'parser': parsers.p_content_type, 'required': True},
     'dar_indiener_samenvatting': {'parser': parsers.p_indiener_samenvatting, 'required': False},
     'dar_restricted': {'parser': parsers.p_true_false, 'required': False},
     'dar_err_date': {'parser': parsers.p_keyed_dates, 'required': False},
     'dar_rel_docs': {'parser': lambda r: parsers.p_doc_list(r.upper()), 'required': False},
     'dar_verg_nr': {'parser': parsers.p_oc_session_number, 'required': True},
-    'dar_volgnummer': {'parser': parsers.p_number, 'required': False},
+    'dar_volgnummer': {'parser': parsers.p_oc_priority, 'required': False},
     'dar_levenscyclus_status': {'parser': parsers.p_lifecycle_state, 'required': False},
     # 'dar_besl_vereist': {'parser': parsers.p_true_false, 'required': False}, # Wordt niet gebruikt
     # 'dar_onderwerp': {'parser': , 'required': False},

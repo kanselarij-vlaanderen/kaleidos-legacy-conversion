@@ -157,8 +157,8 @@ class OcVerslagName(DocumentName):
                                                       self.datum.month,
                                                       self.datum.day)
 
-class OcBeslissingsficheName(DocumentName):
-    def __init__(self, date, punt_nr=None, punt_type='PUNT'):
+class OcNotificatieName(DocumentName):
+    def __init__(self, date, punt_nr=None):
         super().__init__()
         self.datum = date
         self.punt_nr = punt_nr
