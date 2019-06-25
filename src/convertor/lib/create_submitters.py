@@ -4,12 +4,11 @@ import json
 import logging
 
 from .model.mandatee import Mandatee, Person
-from .model.governing_body import GoverningBody
 
-def load_submitter_mapping(path):
+def load_governing_body_mapping(path):
     with open(path, mode='r') as f:
-        uuids_by_id = json.load(f)
-    return uuids_by_id
+        uuids_by_ref = json.load(f)
+    return uuids_by_ref
 
 def search_person(persons, family_name, given_name):
     try:
@@ -36,9 +35,8 @@ def search_mandatee(mandatees, person, start_date, official_title):
         continue
     return None
 
-def create_submitters_by_ref(agendas, administrations, submitter_uuid_lut):
+def create_submitters_by_ref(agendas, administrations):
     submitters_by_ref = {}
-    governing_bodies = []
     persons = []
     mandatees = []
     for agenda in reversed(agendas): # From most recent to older (most recent have more given names, avoid wrong coalescing based on family name)
@@ -65,10 +63,7 @@ def create_submitters_by_ref(agendas, administrations, submitter_uuid_lut):
                         mandatee = search_mandatee(mandatees, person, gov.installation_date, title)
                         if not mandatee:
                             mandatee = Mandatee(person, gov.installation_date)
-                            if ref in submitter_uuid_lut:
-                                mandatee.uuid = submitter_uuid_lut[ref]
-                            else:
-                                mandatee.deprecated = True
+                            mandatee.deprecated = True
                             mandatee.src_uri = rel_doc.src_uri
                             mandatees.append(mandatee)
                             gov.mandatees.append(mandatee)
@@ -77,19 +72,13 @@ def create_submitters_by_ref(agendas, administrations, submitter_uuid_lut):
                             mandatee.end_date = gov.resignation_date
                             mandatee.mandate_uri = gov.minister_mandate_uri # We assume all ministers. Differentiation MP, vMP in postprocessing
                         submitters_by_ref[ref] = mandatee
-                    elif isinstance(submitter, str): # A governing organ
-                        ref = submitter
-                        governing_body = GoverningBody(submitter)
-                        if ref in submitter_uuid_lut:
-                            governing_body.uuid = submitter_uuid_lut[ref]
-                        else:
-                            governing_body.deprecated = True
-                        governing_bodies.append(governing_body)
-                        submitters_by_ref[ref] = governing_body
                     else:
                         logging.warning('Unexpected submitter reference type {}'.format(type(submitter)))
                         continue
     return submitters_by_ref, persons
+
+def governing_body_uri(base_uri, uuid):
+    return base_uri + "id/bestuursorganen" + "/{}".format(uuid)
 
 def mandatees_by_period_by_src(mandatees):
     mandatees_by_period_by_src = {}

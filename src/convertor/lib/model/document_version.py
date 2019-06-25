@@ -10,11 +10,7 @@ from .document_name import VersionedDocumentName, VrBeslissingsficheName, VrDocu
 def search_government(governments, date):
     for gov in governments:
         if date > gov.installation_date:
-            if gov.resignation_date:
-                if date < gov.resignation_date:
-                    return gov
-                continue
-            else:
+            if (gov.resignation_date and date < gov.resignation_date) or (not gov.resignation_date):
                 return gov
         continue
     return None
@@ -86,21 +82,19 @@ class DocumentVersion:
                         logging.warning("{}: No match found for related doc '{}''".format(str(self), rel_doc['source']))
         return self.vorige
 
-    def link_indiener_refs(self, submitter_lut, governments):
-        """ mandatee_lut takes keys of form str(ref)+gov.uuid (for mandatees) or str(ref) (for governing bodies)"""
+    def link_indiener_refs(self, mandatee_lut, governments):
+        """ mandatee_lut takes keys of form str(ref)+gov.uuid"""
         if self._indiener_refs:
             gov = search_government(governments, self._zittingdatum)
             self.indieners = []
-            for indiener in self._indiener_refs:
-                if gov:
+            if gov:
+                for indiener in self._indiener_refs:
                     try:
-                        self.indieners.append(submitter_lut[str(indiener)+gov.uuid])
+                        self.indieners.append(mandatee_lut[str(indiener)+gov.uuid])
                     except KeyError:
-                        pass
-                try:
-                    self.indieners.append(submitter_lut[str(indiener)])
-                except KeyError:
-                    logging.warning("No match found for indiener reference '{}'".format(indiener))
+                        logging.warning("{}: No match found for indiener reference '{}'".format(str(self), indiener))
+            else:
+                logging.warning("{}: No government found that was active on {}. Can't match submitters".format(str(self), self._zittingdatum))
         return self.indieners
 
     @property

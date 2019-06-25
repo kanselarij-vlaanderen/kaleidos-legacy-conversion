@@ -14,7 +14,6 @@ from lib.model.document_name import DocumentName, OcDocumentName, OcAgendaName, 
 from lib.document_version_creator import create_files_document_versions_agenda_items, group_doc_vers_by_source_name, group_doc_vers_by_parsed_name, group_doc_vers_by_object_id
 
 from lib.create_agendas import create_agendas
-from lib.create_submitters import load_submitter_mapping, create_submitters_by_ref
 from lib.search import find_agenda_document, find_notulen_document, find_agenda
 
 from lib.create_news_items import create_news_items, group_news_items_by_agenda_date
@@ -25,6 +24,7 @@ from lib.create_files import load_file_mapping
 from lib.create_document_types import create_document_types
 from lib.create_dossiers import create_dossiers
 from lib.create_administrations import create_administrations
+from lib.create_submitters import load_governing_body_mapping, governing_body_uri
 from load_file_metadata import load_file_metadata
 
 ###########################################################
@@ -52,7 +52,7 @@ parsed_fiche_source = import_csv(config.EXPORT_FILES['OC']['fiche'],
 
 theme_uuid_lut = load_theme_mapping(config.THEME_MAPPING_FILE_PATH)
 
-submitter_uuid_lut = load_submitter_mapping(config.SUBMITTER_MAPPING_FILE_PATH)
+governing_body_uuid_lut = load_governing_body_mapping(config.SUBMITTER_MAPPING_FILE_PATH)
 
 ###########################################################
 # CONVERT TO OBJECT MODEL
