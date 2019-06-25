@@ -23,7 +23,7 @@ def create_news_item_from_src(connection, src):
             plain_text = BeautifulSoup(src['body_value']).get_text()
             ni = NewsItem(src['nid'], src['agenda_date'], src['description'], plain_text, structured_text)
             ni.public = bool(int(src['status']))
-            ni.session_number = int(src['meeting_sequence'])
+            ni.session_number = int(src['meeting_sequence']) if src['meeting_sequence'] else None
             if src['date_published']:
                 ni.date_published = TIMEZONE.localize(src['date_published'])
             if src['documents_date_published']:
