@@ -235,16 +235,22 @@ class Agendapunt():
             self.decision_documents = []
             for rel_doc in self.beslissingsfiche._decision_doc_refs:
                 try:
-                    self.decision_documents.append(doc_lut[rel_doc['source']][0]) # TEMP: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
+                    doc = doc_lut[rel_doc['source']][0] # WARNING: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
+                    self.decision_documents.append(doc)
+                    if doc not in self.documents:
+                        self.documents.append(doc)
                 except KeyError as e:
                     try:
-                        logging.info('No match found by literal \'dar_rel_docs\'-key {}, trying search by properties'.format(rel_doc['source']))
+                        logging.info("No match found by literal 'dar_rel_docs'-key {}, trying search by properties".format(rel_doc['source']))
                         if rel_doc['success']:
-                            self.decision_documents.append(fallback_doc_lut[rel_doc['parsed']][0]) # TEMP: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
+                            doc = fallback_doc_lut[rel_doc['parsed']][0] # WARNING: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
+                            self.decision_documents.append(doc)
+                            if doc not in self.documents:
+                                self.documents.append(doc)
                         else:
-                            logging.warning('Related doc {} doesn\'t have parsed parts'.format(rel_doc['source']))
+                            logging.warning("Related doc {} doesn't have a parsed name".format(rel_doc['source']))
                     except KeyError as e:
-                        logging.warning('No match found for \'related\' doc {}'.format(rel_doc['source']))
+                        logging.warning("No match found for 'related' doc {}".format(rel_doc['source']))
         return self.decision_documents
 
     def has_decision_content(self):
