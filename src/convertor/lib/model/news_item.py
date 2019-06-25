@@ -42,6 +42,7 @@ class NewsItem:
         self.uuid = str(uuid.uuid1())
         self.id = id
         self.agenda_date = date
+        self.session_number = None
         self.public = False
         self.title = title
         self.date_published = None

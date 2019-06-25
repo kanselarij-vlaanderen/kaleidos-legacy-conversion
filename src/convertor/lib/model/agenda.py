@@ -95,15 +95,19 @@ class Agenda:
         return self.notulen
 
     def link_news_items(self, news_item_lut):
-        try:
-            for ni in news_item_lut[self.datum]:
-                for item in self.agendapunten:
-                    if ni.agenda_item_nr == item.volgnr:
-                        if (item.is_announcement and ni.agenda_item_type == 'MEDEDELING') or \
-                            (not item.is_announcement and ni.agenda_item_type == 'PUNT'):
-                            item.news_item = ni
-        except KeyError:
+        if (self.datum.year, self.zittingnr) in news_item_lut:
+            nis = news_item_lut[(self.datum.year, self.zittingnr)]
+        elif self.datum in news_item_lut: # Old news item records without session number
+            nis = news_item_lut[self.datum]
+        else:
             logging.warning("No newsletter available for agenda {}".format(str(self.datum)))
+            return
+        for ni in nis:
+            for item in self.agendapunten:
+                if ni.agenda_item_nr == item.volgnr:
+                    if (item.is_announcement and ni.agenda_item_type == 'MEDEDELING') or \
+                        (not item.is_announcement and ni.agenda_item_type == 'PUNT'):
+                        item.news_item = ni
 
     def uri(self, base_uri):
         return base_uri + "id/agendas/" + "{}".format(self.uuid)

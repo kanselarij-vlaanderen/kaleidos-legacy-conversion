@@ -23,6 +23,7 @@ def create_news_item_from_src(connection, src):
             plain_text = BeautifulSoup(src['body_value']).get_text()
             ni = NewsItem(src['nid'], src['agenda_date'], src['description'], plain_text, structured_text)
             ni.public = bool(int(src['status']))
+            ni.session_number = src['session_number']
             if src['date_published']:
                 ni.date_published = TIMEZONE.localize(src['date_published'])
             if src['documents_date_published']:
@@ -80,11 +81,22 @@ def verify_active_disclosure(connection, doris_id):
         else:
             return False
         
-def group_news_items_by_agenda_date(news_items):
-    news_items_by_agenda_date = {}
-    news_items = sorted(news_items, key=lambda ni: ni.agenda_date)
-    for k, g in itertools.groupby(news_items, lambda ni: ni.agenda_date):
-        l = [e for e in g]
+def group_news_items(news_items):
+    """
+    Groups news items by tuple key (session_year, session_number).
+    If no session number is available, by 'session_date' key.
+    """
+    news_items_by_key = {}
+    old_news_items = filter(lambda ni: ni.session_number is None, news_items)
+    old_news_items = sorted(old_news_items, lambda ni: ni.agenda_date)
+    for k, g in itertools.groupby(old_news_items, lambda ni: ni.agenda_date):
+        l = list(g)
         l.sort(key=lambda ni: (ni.agenda_item_type, ni.agenda_item_nr))
-        news_items_by_agenda_date[k] = tuple(l)
-    return news_items_by_agenda_date
+        news_items_by_key[k] = tuple(l)
+    new_news_items = filter(lambda ni: ni.session_number is not None, news_items)
+    new_news_items = sorted(new_news_items, lambda ni: (ni.agenda_date.year, ni.session_number))
+    for k, g in itertools.groupby(new_news_items, lambda ni: (ni.agenda_date.year, ni.session_number)):
+        l = list(g)
+        l.sort(key=lambda ni: (ni.agenda_item_type, ni.agenda_item_nr))
+        news_items_by_key[k] = tuple(l)
+    return news_items_by_key

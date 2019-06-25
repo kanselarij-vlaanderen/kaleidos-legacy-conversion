@@ -3,6 +3,7 @@ node.nid as nid,
 node.vid as vid,
 STR_TO_DATE(SUBSTRING(node.title, 1, 6), '%d%m%y') AS agenda_date,
 field_data_field_date.field_date_value AS date_published,
+field_data_field_meeting_sequence.field_meeting_sequence_value AS meeting_sequence,
 field_data_field_documents_date_published.field_documents_date_published_value AS documents_date_published,
 node.status as status,
 field_data_field_agendanumber.field_agendanumber_value AS agenda_item_nr, 
@@ -30,6 +31,8 @@ LEFT JOIN field_data_field_kortbestek
 ON nid = field_data_field_kortbestek.entity_id AND vid = field_data_field_kortbestek.revision_id
 LEFT JOIN field_data_field_date
 ON field_data_field_kortbestek.field_kortbestek_target_id = field_data_field_date.entity_id
+LEFT JOIN field_data_field_meeting_sequence
+ON field_data_field_kortbestek.field_kortbestek_target_id = field_data_field_meeting_sequence.entity_id
 LEFT JOIN field_data_field_documents_date_published
 ON field_data_field_kortbestek.field_kortbestek_target_id = field_data_field_documents_date_published.entity_id
 LEFT JOIN field_data_field_documents
@@ -44,6 +47,7 @@ GROUP BY
 node.nid,
 field_data_field_agendanumber.field_agendanumber_value,
 field_data_field_date.field_date_value,
+field_data_field_meeting_sequence.field_meeting_sequence_value,
 field_data_field_documents_date_published.field_documents_date_published_value,
 field_data_field_description.field_description_value,
 field_data_body.body_value,
