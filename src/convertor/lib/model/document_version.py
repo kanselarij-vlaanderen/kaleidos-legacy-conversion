@@ -73,7 +73,7 @@ class DocumentVersion:
                     self.vorige.append(doc_lut[rel_doc['source']][0]) # TEMP: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
                 except KeyError as e:
                     try:
-                        logging.info("No match found by source doc name ref '{}', trying search by parsed name ...".format(rel_doc['source']))
+                        logging.info("{}: No match found by source doc name ref '{}', trying search by parsed name ...".format(str(self), rel_doc['source']))
                         if rel_doc['success']:
                             try:
                                 name = rel_doc['parsed'][0].versioned_name(rel_doc['parsed'][1])
@@ -81,9 +81,9 @@ class DocumentVersion:
                                 name = rel_doc['parsed'].name()
                             self.vorige.append(fallback_doc_lut[name][0]) # TEMP: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
                         else:
-                            logging.info("Related doc {} doesn't have a parsed name".format(rel_doc['source']))
+                            logging.info("{}: Related doc {} doesn't have a parsed name".format(str(self), rel_doc['source']))
                     except KeyError as e:
-                        logging.warning("No match found for related doc '{}''".format(rel_doc['source']))
+                        logging.warning("{}: No match found for related doc '{}''".format(str(self), rel_doc['source']))
         return self.vorige
 
     def link_indiener_refs(self, submitter_lut, governments):
@@ -147,10 +147,8 @@ class DocumentVersion:
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.DCT['source'], URIRef(self.src_uri)),
         ]
-        if self.version:
-            triples.append((uri, ns.EXT['versieNummer'], Literal(self.version)))
-        else:
-            triples.append((uri, ns.EXT['versieNummer'], Literal(1)))
+        version = self.version if self.version else 1
+        triples.append((uri, ns.EXT['versieNummer'], Literal(version)))
         if self.mufile.created:
             triples.append((uri, ns.DCT['created'], Literal(self.mufile.created.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)))
         else:

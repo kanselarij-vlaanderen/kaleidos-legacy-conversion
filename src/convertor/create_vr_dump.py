@@ -133,14 +133,14 @@ for agenda in agendas:
         if ap.news_item:
             found_nis += 1
 
-logging.info("Found {} out of {} documents ({:.1f}%) referenced in {} agendapoints".format(found_rel_docs, total_rel_docs, found_rel_docs/total_rel_docs*100, i))
-logging.info("Found {} out of {} expected news items ({:.1f}%) for {} agendapoints".format(found_nis, expected_nis, found_nis/expected_nis*100, i))
+logging.info("Found {} out of {} documents ({:.1f}%) referenced in {} agenda items".format(found_rel_docs, total_rel_docs, found_rel_docs/total_rel_docs*100, i))
+logging.info("Found {} out of {} expected news items ({:.1f}%) for {} agenda items".format(found_nis, expected_nis, found_nis/expected_nis*100, i))
 
 dossiers_by_year_dossiernr = create_dossiers(agendas) # Requires agendapunt.rel_docs to be linked
 
 administrations = create_administrations()
 
-submitters_lut, persons = create_submitters_by_ref(agendas, administrations, submitter_uuid_lut)
+submitters_lut, persons = create_submitters_by_ref(agendas, administrations)
 
 for agenda in agendas:
     for ap in agenda.agendapunten:

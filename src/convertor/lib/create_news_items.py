@@ -80,7 +80,7 @@ def verify_active_disclosure(connection, doris_id):
             return bool(int(result['active_disclosure']))
         else:
             return False
-        
+
 def group_news_items(news_items):
     """
     Groups news items by tuple key (session_year, session_number).
