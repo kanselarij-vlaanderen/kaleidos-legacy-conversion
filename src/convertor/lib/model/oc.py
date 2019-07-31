@@ -68,6 +68,7 @@ class AgendaItem():
     def triples(self, ns, base_uri):
         uri = URIRef(self.uri(base_uri))
         triples = [
+            (uri, RDF['type'], ns.OC['AgendaItem']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.OC['priority'], Literal(self.priority)),
             (uri, ns.DCT['subject'], Literal(self.subject)),
@@ -78,6 +79,8 @@ class AgendaItem():
             triples.append((uri, ns.OC['subPriority'], Literal(self.sub_priority)))
         if self.notification:
             triples.append((uri, ns.OC['notification'], URIRef(self.notification.uri(base_uri))))
+        if self.case:
+            triples.append((URIRef(self.case.uri(base_uri)), ns.OC['caseAgendaItem'], uri))
         for doc in self.documents:
             triples += [
                 (uri, ns.OC['files'], URIRef(doc.uri(base_uri))),
@@ -99,6 +102,7 @@ class Case():
     def triples(self, ns, base_uri):
         uri = URIRef(self.uri(base_uri))
         triples = [
+            (uri, RDF['type'], ns.OC['Case']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.DCT['identifier'], Literal(self.identifier)),
         ]

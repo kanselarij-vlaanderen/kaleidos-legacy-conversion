@@ -23,17 +23,17 @@ from load_file_metadata import load_file_metadata
 # PARSE AND LOAD METADATA
 ###########################################################
 file_metadata_lut = {}
-# for file in [f for f in os.listdir(config.FILE_METADATA_FOLDER_PATH) if f.endswith('.csv') and 'errata' not in f]:
-#     file_metadata_lut = {
-#         **file_metadata_lut,
-#         **load_file_metadata(os.path.join(config.FILE_METADATA_FOLDER_PATH, file))
-#     }
+for file in [f for f in os.listdir(config.FILE_METADATA_FOLDER_PATH) if f.endswith('.csv') and 'errata' not in f]:
+    file_metadata_lut = {
+        **file_metadata_lut,
+        **load_file_metadata(os.path.join(config.FILE_METADATA_FOLDER_PATH, file))
+    }
 file_uuid_lut = {}
-# for file in [f for f in os.listdir(config.FILE_MAPPING_FOLDER_PATH) if f.endswith('.json')]:
-#     file_uuid_lut = {
-#         **file_uuid_lut,
-#         **load_file_mapping(os.path.join(config.FILE_MAPPING_FOLDER_PATH, file))
-#     }
+for file in [f for f in os.listdir(config.FILE_MAPPING_FOLDER_PATH) if f.endswith('.json')]:
+    file_uuid_lut = {
+        **file_uuid_lut,
+        **load_file_mapping(os.path.join(config.FILE_MAPPING_FOLDER_PATH, file))
+    }
 
 parsed_doc_source = import_csv(config.EXPORT_FILES['OC']['document'],
                                config.DORIS_EXPORT_ENCODING,
