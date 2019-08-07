@@ -50,13 +50,13 @@ class MuFile:
         triples = [
             (virtual_file_uri, RDF['type'], ns.NFO['FileDataObject']),
             (virtual_file_uri, ns.MU['uuid'], Literal(self.uuid)),
-            (virtual_file_uri, ns.NFO['fileName'], Literal(self.name)),
+            (virtual_file_uri, ns.NFO['fileName'], Literal(self.name + '.' + self.extension)), #NFO spec: "Name of the file, together with the extension"
             (virtual_file_uri, ns.DCT['format'], Literal(self.mimetype)),
             (virtual_file_uri, ns.DBPEDIA['fileExtension'], Literal(self.extension)),
 
             (physical_file_uri, RDF['type'], ns.NFO['FileDataObject']),
             (physical_file_uri, ns.MU['uuid'], Literal(self.physical_uuid)),
-            (physical_file_uri, ns.NFO['fileName'], Literal(self.physical_name)),
+            (physical_file_uri, ns.NFO['fileName'], Literal(self.physical_name + '.' + self.extension)), #NFO spec: "Name of the file, together with the extension"
             (physical_file_uri, ns.DCT['format'], Literal(self.mimetype)),
             (physical_file_uri, ns.DBPEDIA['fileExtension'], Literal(self.extension)),
             (physical_file_uri, ns.NIE['dataSource'], virtual_file_uri),
