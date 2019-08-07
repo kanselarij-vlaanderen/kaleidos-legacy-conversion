@@ -6,6 +6,7 @@ import os
 import rdflib
 
 import config
+from lib.util.rreplace import rreplace
 from lib.util.import_helpers import import_csv
 from lib.config.oc_export_parsing_map import custom_trans_document, custom_trans_fiche
 import lib.config.ttl_ns_repository as ns
@@ -113,11 +114,14 @@ for session_date, docs_1 in docs_per_session:
                             pass
                 try:
                     case_ref = next(filter(lambda c: not c[1], p_oc_fed_case_name(src['dar_onderwerp']['source'])))
+                    case_id, in_parens = case_ref
                     try:
-                        item.case = cases_by_id[case_ref[0]]
+                        item.case = cases_by_id[case_id]
                     except KeyError:
-                        cases_by_id[case_ref[0]] = Case(case_ref[0])
-                        item.case = cases_by_id[case_ref[0]]
+                        cases_by_id[case_id] = Case(case_id)
+                        item.case = cases_by_id[case_id]
+                    if item.subject.endswith(case_id):
+                        item.subject = rreplace(item.subject, case_id, '', 1).rstrip(' \n')
                 except StopIteration:
                     pass
             except (TypeError, StopIteration):
