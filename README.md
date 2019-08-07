@@ -1,5 +1,18 @@
 # Kaleidos legacy conversion
 
+
+### Preprocessing: fix encoding issues
+
+Fix the encoding issues of each `metadata.csv`-file recursively found in `./data/doris`. The original `metadata.csv`-files are kept intact, new `metadata_enc_fixes.csv` files are created.
+```
+docker build -t "encoding-fixes" ./src/encoding_fixes
+docker run -v ./data/doris:/data encoding-fixes
+```
+
+### Running the conversion tool
+
+building the container for the tool:
+
 Get the required containers running:
 ```
 docker-compose -f docker-compose.database.yml -f docker-compose.convertor.yml up
