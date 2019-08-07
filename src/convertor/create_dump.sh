@@ -15,7 +15,7 @@ do
     mv "$f" "log/old"
 done
 
-TIMESTAMP=`date +"%Y-%m-%d_%H-%m-%S_"`
+TIMESTAMP=`date +"%Y%m%d%H%m%S-"`
 
 cd  /app
 python $1

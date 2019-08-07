@@ -148,5 +148,5 @@ if __name__ == "__main__":
         for triple in case.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
 
-    filename = 'kaleidos_oc.ttl'
+    filename = 'kaleidos-oc-sensitive.ttl'
     g.serialize(format='turtle', destination=os.path.join(config.TTL_FOLDER_PATH, filename))

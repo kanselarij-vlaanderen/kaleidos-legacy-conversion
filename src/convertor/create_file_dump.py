@@ -53,6 +53,6 @@ if __name__ == "__main__":
                 for triple in file.triples(ns, config.KALEIDOS_API_URI):
                     g.add(triple)
 
-            filename = 'kaleidos_file_{}_{}.ttl'.format(context, metadata_doc_type)
+            filename = 'kaleidos-file-{}-{}-sensitive.ttl'.format(context, metadata_doc_type)
             g.serialize(format='turtle', destination=os.path.join(config.TTL_FOLDER_PATH, filename))
 
