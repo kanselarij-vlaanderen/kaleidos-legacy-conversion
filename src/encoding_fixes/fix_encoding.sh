@@ -17,6 +17,7 @@ fixEncoding ()
     sed -i -E "s/([a-zA-Z0-9.-])_(s|S)(\W)/\1’\2\3/g" "$1".new # Dutch plural: KMO_s -> KMO's
     echo "Diff for apostrophe fixes:"
     echo "####################################################################"
+    git diff --shortstat "$1".old "$1".new
     git --no-pager diff --unified=0 --word-diff=porcelain --word-diff-regex="\w+(_|’)(s|S)|[^[:space:]]" "$1".old "$1".new
     cp "$1".new "$1".old
 
@@ -34,6 +35,7 @@ fixEncoding ()
     sed -i -E "s/(\s)¿(\s)/\1—\2/g" "$1".new
     echo "Diff for opening- & closing quotation and long dash fixes:"
     echo "####################################################################"
+    git diff --shortstat "$1".old "$1".new
     git --no-pager diff --unified=0 --word-diff=color --word-diff-regex=. "$1".old "$1".new
     cp "$1".new "$1".old
 
