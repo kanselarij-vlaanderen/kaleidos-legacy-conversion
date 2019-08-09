@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import uuid
+import os
 
 from rdflib.namespace import RDF, XSD
 from rdflib import URIRef, Literal
@@ -32,7 +33,8 @@ class MuFile:
 
     @property
     def physical_uri(self):
-        return "share://{}{}.{}".format(self.folder_path, self.physical_name, self.extension)
+        fullname = self.physical_name + '.' + self.extension
+        return 'share://' + os.path.join(self.folder_path, fullname)
 
     def materialize_metadata(self, metadata_lut):
         try:

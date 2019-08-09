@@ -44,10 +44,10 @@ for file in [f for f in os.listdir(config.FILE_MAPPING_FOLDER_PATH) if f.endswit
     }
 
 parsed_doc_source = import_csv(config.EXPORT_FILES['VR']['document'],
-                               config.DORIS_EXPORT_ENCODING,
+                               config.DORIS_EXPORT_METADATA_ENCODING,
                                custom_trans_document)
 parsed_fiche_source = import_csv(config.EXPORT_FILES['VR']['fiche'],
-                                 config.DORIS_EXPORT_ENCODING,
+                                 config.DORIS_EXPORT_METADATA_ENCODING,
                                  custom_trans_fiche)
 
 theme_uuid_lut = load_theme_mapping(config.THEME_MAPPING_FILE_PATH)

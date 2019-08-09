@@ -4,7 +4,11 @@ from os import path, environ
 
 LOG_LEVEL = logging.getLevelName(environ.get('LOG_LEVEL', 'INFO'))
 
-DORIS_EXPORT_FOLDER_PATH = environ.get('DORIS_EXPORT_FOLDER_PATH', '/data/doris')
+DORIS_EXPORT_FOLDER_PATH = '/data/doris'
+DORIS_EXPORT_SUBFOLDER_FS = '{0}/dar_doris_{1}_{2}/'
+DORIS_EXPORT_METADATA_FN = "metadata_enc_fixes.csv"
+DORIS_EXPORT_METADATA_ENCODING = 'utf-8'
+DORIS_EXPORT_FILE_SUBFOLDER = 'content'
 
 FILE_METADATA_FOLDER_PATH = environ.get('FILE_METADATA_FOLDER_PATH', '/data/tmp/file_metadata')
 
@@ -22,7 +26,8 @@ KALEIDOS_DOC_FILE_PATH = ""  # With trailing slash! relative to /share
 
 GRAPH_NAME = 'http://mu.semte.ch/graphs/public'
 
-KALEIDOS_SHARE_EXPORT_SUBFOLDER = '' # Subfolder within the share folder where the export files folder will be located
+# location within the app's share folder that will contain the contents of DORIS_EXPORT_FOLDER_PATH
+KALEIDOS_SHARE_EXPORT_SUBFOLDER = environ.get('KALEIDOS_SHARE_EXPORT_SUBFOLDER', 'doris_exports')
 
 
 FILE_MAPPING_FOLDER_PATH = environ.get('FILE_MAPPING_FOLDER_PATH', '/data/tmp/file_id2uuid_mapping')
@@ -34,21 +39,20 @@ SUBMITTER_MAPPING_FILE_PATH = "/data/tmp/submitter_ref2uuid_mapping.json"
 # PRIVATE
 ####################################################################################################
 
-EXPORT_FILE_PATH_FS = "export dar_doris_{}_{}/metadata.csv"
-
-DORIS_EXPORT_ENCODING = 'iso-8859-1'
-
 BEGINDATUM_DORIS_REFERENTIES = datetime.date(1992, 12, 31)
 BEGINDATUM_NIEUWSBERICHTEN = datetime.date(2006, 2, 10)
 
+DORIS_EXPORT_METADATA_PATH_FS = path.join(DORIS_EXPORT_FOLDER_PATH,
+                                          DORIS_EXPORT_SUBFOLDER_FS,
+                                          DORIS_EXPORT_METADATA_FN)
 EXPORT_FILES = {
     'VR': {
-        'document': path.join(DORIS_EXPORT_FOLDER_PATH, EXPORT_FILE_PATH_FS.format('vr', 'document')),
-        'fiche': path.join(DORIS_EXPORT_FOLDER_PATH, EXPORT_FILE_PATH_FS.format('vr', 'fiche'))
+        'document': DORIS_EXPORT_METADATA_PATH_FS.format('VR', 'vr', 'document'),
+        'fiche': DORIS_EXPORT_METADATA_PATH_FS.format('VR', 'vr', 'fiche'),
     },
     'OC': {
-        'document': path.join(DORIS_EXPORT_FOLDER_PATH, EXPORT_FILE_PATH_FS.format('oc', 'document')),
-        'fiche': path.join(DORIS_EXPORT_FOLDER_PATH, EXPORT_FILE_PATH_FS.format('oc', 'fiche'))
+        'document': DORIS_EXPORT_METADATA_PATH_FS.format('OC', 'oc', 'document'),
+        'fiche': DORIS_EXPORT_METADATA_PATH_FS.format('OC', 'oc', 'fiche'),
     }
 }
 

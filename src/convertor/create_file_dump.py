@@ -20,7 +20,7 @@ NOW = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 if __name__ == "__main__":
 
     file_metadata_lut = {}
-    for file in [f for f in os.listdir(config.FILE_METADATA_FOLDER_PATH) if f.endswith('.csv')]:
+    for file in [f for f in os.listdir(config.FILE_METADATA_FOLDER_PATH) if f.endswith('.csv') and 'errata' not in f]:
         file_metadata_lut = {
             **file_metadata_lut,
             **load_file_metadata(os.path.join(config.FILE_METADATA_FOLDER_PATH, file))
@@ -36,23 +36,20 @@ if __name__ == "__main__":
     i = 0
     for context, files in config.EXPORT_FILES.items():
         for metadata_doc_type, path in files.items():
-            i +=1
-            parsed_file_source = import_csv(path, config.DORIS_EXPORT_ENCODING, custom_trans_file)
+            i += 1
+            parsed_file_source = import_csv(path, config.DORIS_EXPORT_METADATA_ENCODING, custom_trans_file)
 
-            export_folder_path = "exportDoris/{}/dar_doris_{}_{}/content/".format(context.upper(), context.lower(), metadata_doc_type)
-            physical_file_folder = os.path.join(config.KALEIDOS_SHARE_EXPORT_SUBFOLDER, export_folder_path).rstrip('/') + '/'
-
+            physical_file_folder = os.path.join(config.KALEIDOS_SHARE_EXPORT_SUBFOLDER,
+                                                config.DORIS_EXPORT_SUBFOLDER_FS.format(context.upper(), context.lower(), metadata_doc_type.lower()),
+                                                config.DORIS_EXPORT_FILE_SUBFOLDER)
             files, id2uuid_out = create_files(parsed_file_source, file_metadata_lut, physical_file_folder, file_uuid_lut)
             filename = '{}_{}_{}.json'.format(NOW, context, metadata_doc_type)
             dump_file_mapping(id2uuid_out, os.path.join(config.FILE_MAPPING_FOLDER_PATH, filename))
 
             g = rdflib.Graph(identifier=rdflib.URIRef(config.GRAPH_NAME))
             for file in files:
-                if (context == 'VR') and (metadata_doc_type == 'document'):
-                    file.folder_path += "{}/".format(str(file.physical_name[0:11]))
                 for triple in file.triples(ns, config.KALEIDOS_API_URI):
                     g.add(triple)
 
-            filename = 'kaleidos-file-{}-{}-sensitive.ttl'.format(context, metadata_doc_type)
+            filename = 'kaleidos-file-{}-{}-sensitive.ttl'.format(context.lower(), metadata_doc_type.lower())
             g.serialize(format='turtle', destination=os.path.join(config.TTL_FOLDER_PATH, filename))
-

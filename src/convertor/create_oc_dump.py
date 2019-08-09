@@ -37,10 +37,10 @@ for file in [f for f in os.listdir(config.FILE_MAPPING_FOLDER_PATH) if f.endswit
     }
 
 parsed_doc_source = import_csv(config.EXPORT_FILES['OC']['document'],
-                               config.DORIS_EXPORT_ENCODING,
+                               config.DORIS_EXPORT_METADATA_ENCODING,
                                custom_trans_document)
 parsed_fiche_source = import_csv(config.EXPORT_FILES['OC']['fiche'],
-                                 config.DORIS_EXPORT_ENCODING,
+                                 config.DORIS_EXPORT_METADATA_ENCODING,
                                  custom_trans_fiche)
 
 governing_body_uuid_lut = load_governing_body_mapping(config.SUBMITTER_MAPPING_FILE_PATH)
