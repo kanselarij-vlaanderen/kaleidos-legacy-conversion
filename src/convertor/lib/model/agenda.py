@@ -48,6 +48,8 @@ class Agenda:
         self.notulen = None
         self.agenda_doc = None
 
+        self.geplande_start = TIMEZONE.localize(datetime.datetime.combine(self.datum, datetime.time(12, 0, 0)))
+        
     def __str__(self):
         retval = "Agenda voor zitting {:04d}/{:02d} ({}):".format(self.datum.year,
                                                                   self.zittingnr,
@@ -136,7 +138,7 @@ class Agenda:
             (zitting_uri, RDF['type'], ns.BESLUIT['Zitting']),
             (zitting_uri, ns.MU['uuid'], Literal(self.zitting_uuid)),
             (zitting_uri, ns.DCT['source'], URIRef(self.uri(base_uri))),
-            (zitting_uri, ns.BESLUIT['geplandeStart'], Literal(TIMEZONE.localize(datetime.datetime.combine(self.datum, datetime.time(12, 0, 0))).isoformat(), datatype=XSD.dateTime)),
+            (zitting_uri, ns.BESLUIT['geplandeStart'], Literal(self.geplande_start.isoformat(), datatype=XSD.dateTime)),
             # (zitting_uri, ns.PROV['startedAtTime'], Literal()),
             # (zitting_uri, ns.PROV['endedAtTime'], Literal()),
             (zitting_uri, ns.ADMS['identifier'], Literal(self.zittingnr)),
@@ -309,6 +311,7 @@ class Agendapunt():
                 (procedurestap_uri, RDF['type'], ns.DBPEDIA['UnitOfWork']),
                 (procedurestap_uri, ns.MU['uuid'], Literal(self.procedurestap_uuid)),
                 (procedurestap_uri, ns.DCT['source'], URIRef(self.src_uri)),
+                (procedurestap_uri, ns.EXT['modified'], Literal(self.zitting.geplande_start.isoformat(), datatype=XSD.dateTime)),
                 (procedurestap_uri, ns.BESLUITVORMING['isGeagendeerdVia'], uri),
                 (procedurestap_uri, ns.EXT['procedurestapHeeftBesluit'], URIRef(besluit_uri)),
             ]

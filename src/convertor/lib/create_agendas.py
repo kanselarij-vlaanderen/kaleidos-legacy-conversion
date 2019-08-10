@@ -61,6 +61,7 @@ def create_agendas(document_versions):
                         item = Agendapunt(item_number)
                         item.src_uri = docs_3[0].src_uri
                         agenda.agendapunten.append(item)
+                        item.zitting = agenda
                         try:
                             item.beslissingsfiche = sorted(list(filter(is_bf, docs_3)), key=lambda d: d.version if d.version else 0)[-1] # Versioned
                         except (TypeError, IndexError):
@@ -71,6 +72,7 @@ def create_agendas(document_versions):
                     item = Agendapunt(item_number, beslissingsfiche)
                     item.src_uri = beslissingsfiche.src_uri
                     agenda.agendapunten.append(item)
+                    item.zitting = agenda
     # Sort agendas by date
     agendas.sort(key=lambda a: tuple((a.datum.year, a.zittingnr)))
 
