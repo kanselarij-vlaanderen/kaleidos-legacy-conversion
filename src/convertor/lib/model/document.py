@@ -73,8 +73,8 @@ class Document:
                             URIRef(self.access_level_uri)))
         if self.name:
             triples.append((uri, ns.BESLUITVORMING['stuknummerVR'], Literal(self.name)))
-        if self.title:
-            triples.append((uri, ns.DCT['title'], Literal(self.title)))
+        # if self.title:
+        #     triples.append((uri, ns.DCT['title'], Literal(self.title)))
         # if self.description:
         #     triples.append((uri, ns.EXT['omschrijving'], Literal(self.description)))
         if self.created:
