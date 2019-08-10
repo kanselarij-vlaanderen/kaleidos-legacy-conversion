@@ -37,6 +37,7 @@ class DocumentVersion:
         self.title = None
         self.short_title = None
         self.keywords = []
+        self.in_news_item = False
 
         self.mufile = None
         self.vorige = []

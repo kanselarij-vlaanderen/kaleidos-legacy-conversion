@@ -97,7 +97,10 @@ class NewsItem:
             self.document_versions = []
             for document_ref in self.document_refs:
                 try:
-                    self.document_versions.append(document_version_lut[key_fun(document_ref)])
+                    doc_ver = document_version_lut[key_fun(document_ref)]
+                    self.document_versions.append(doc_ver)
+                    if self.public and self.date_published:
+                        doc_ver.in_news_item = True
                 except KeyError as e:
                     logging.warning('No match found for \'document ref\' {}'.format(document_ref))
 

@@ -4,6 +4,8 @@ import uuid
 from rdflib.namespace import RDF, XSD
 from rdflib import URIRef, Literal
 
+from lib.code_lists.access_levels import ACCESS_LEVEL_URI
+
 class Document:
     def __init__(self, first_document_version):
         super().__init__()
@@ -33,8 +35,20 @@ class Document:
 
     @property
     def confidential(self):
-        any(doc.confidential for ver, doc in self.document_versions.items()) # No 'vertrouwelijk' at document-version level in new model, so better safe than sorry with 'any'
+        # No 'vertrouwelijk' at document-version level in new model, so better safe than sorry with 'any'
+        return any(doc.confidential for ver, doc in self.document_versions.items())
 
+    @property
+    def access_level_uri(self):
+        if any(doc.levenscyclus_status == 'Uitgesteld' for ver, doc in self.document_versions.items()):
+            return ACCESS_LEVEL_URI["Intern overheid"]
+        elif any(doc.in_news_item for ver, doc in self.document_versions.items()):
+            return ACCESS_LEVEL_URI["Actief openbaar"]
+        elif any(doc.levenscyclus_status == 'Openbaar' for ver, doc in self.document_versions.items()):
+            return ACCESS_LEVEL_URI["Beperkt openbaar"]
+        else:
+            return None
+            
     def uri(self, base_uri):
         return "{}id/documenten/{}".format(base_uri, self.uuid)
 
@@ -44,8 +58,19 @@ class Document:
             (uri, RDF['type'], ns.FOAF['Document']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.DCT['source'], URIRef(self.src_uri(base_uri))),
-            (uri, ns.EXT['vertrouwelijk'], Literal(str(self.confidential).lower(), datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
         ]
+        if self.confidential or (not self.access_level_uri):
+            # Level "Intern kabinet" not included in initial implementation. Is regarded as equal to 'vertrouwelijk'
+            confidential = 'true'
+        else:
+            confidential = 'false'
+        triples.append((uri,
+                        ns.EXT['vertrouwelijk'],
+                        Literal(confidential, datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))))
+        if self.access_level_uri:
+            triples.append((uri,
+                            ns.EXT['toegangsniveauVoorDocument'],
+                            URIRef(self.access_level_uri)))
         if self.name:
             triples.append((uri, ns.BESLUITVORMING['stuknummerVR'], Literal(self.name)))
         if self.title:
