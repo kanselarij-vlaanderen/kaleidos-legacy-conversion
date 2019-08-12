@@ -14,7 +14,6 @@ class GoverningBody:
         # Properties bestuursorgaan in de tijd
         self.installation_date = installation_date
         self.resignation_date = resignation_date
-        self.minister_mandate_uri = None
         self.mandatees = []
         
         # Properties generic bestuursorgaan

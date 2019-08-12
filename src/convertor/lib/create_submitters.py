@@ -70,7 +70,6 @@ def create_submitters_by_ref(agendas, administrations):
                             gov.mandatees.sort(key=lambda m: tuple((m.start_date, m.person.family_name)))
                             mandatee.official_title = title
                             mandatee.end_date = gov.resignation_date
-                            mandatee.mandate_uri = gov.minister_mandate_uri # We assume all ministers. Differentiation MP, vMP in postprocessing
                         submitters_by_ref[ref] = mandatee
                     else:
                         logging.warning('Unexpected submitter reference type {}'.format(type(submitter)))
@@ -89,4 +88,3 @@ def mandatees_by_period_by_src(mandatees):
         if len(tuple(g)) > 1:
             logging.warning('More than 1 instance of seemingly unique mandatee found {}'.format(tuple(g)))
     return mandatees_by_period_by_src
-

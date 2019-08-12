@@ -1,29 +1,16 @@
-regering;timerange;uuid;minister_mandate_uri
-Regering-Geens I;22 12 1981 - 10 12 1985;80d3c11d-cbac-4697-a7ad-927ef72293b7;http://kanselarij.vo.data.gift/id/mandaten/4f247470-8870-11e9-8d87-9cb6d01298a1
-Regering-Geens II;10 12 1985 - 03 02 1988;4c80a6c7-3e59-4be1-8051-e44fd6664e3c;http://kanselarij.vo.data.gift/id/mandaten/4f247876-8870-11e9-8d87-9cb6d01298a1
-Regering-Geens III;03 02 1988 - 18 10 1988;84eed8fd-af88-432f-b48b-e6b26ad16bac;http://kanselarij.vo.data.gift/id/mandaten/4f247c04-8870-11e9-8d87-9cb6d01298a1
-Regering-Geens IV;18 10 1988 - 21 01 1992;98d73e86-69c2-4356-b979-ae1eb7949fc8;http://kanselarij.vo.data.gift/id/mandaten/4f247f92-8870-11e9-8d87-9cb6d01298a1
-Regering-Van den Brande I;21 01 1992 - 05 02 1992;ade06181-74fd-44aa-bbcc-c0c7cffc8b1f;http://kanselarij.vo.data.gift/id/mandaten/4f24830c-8870-11e9-8d87-9cb6d01298a1
-Regering-Van den Brande II;05 02 1992 - 20 10 1992;7b02fca1-ce9f-4644-a67d-0fa6c32927c5;http://kanselarij.vo.data.gift/id/mandaten/4f24867c-8870-11e9-8d87-9cb6d01298a1
-Regering-Van den Brande III;20 10 1992 - 20 06 1995;35a6bd0f-508a-4334-894e-3244861a8385;http://kanselarij.vo.data.gift/id/mandaten/4f248a0a-8870-11e9-8d87-9cb6d01298a1
-Regering-Van den Brande IV;20 06 1995 - 13 07 1999;3b4203ef-c0fc-4986-9b8f-9777448f566f;http://kanselarij.vo.data.gift/id/mandaten/4f248f64-8870-11e9-8d87-9cb6d01298a1
-Regering-Dewael;13 07 1999 - 05 06 2003;32f190c4-42f8-42b3-b7b5-c8600b2cc77e;http://kanselarij.vo.data.gift/id/mandaten/4f2494be-8870-11e9-8d87-9cb6d01298a1
-Regering-Somers;10 06 2003 - 20 07 2004 ;74b0b23a-053b-4273-968c-81da6c15be4e;http://kanselarij.vo.data.gift/id/mandaten/4f24996e-8870-11e9-8d87-9cb6d01298a1
-Regering-Leterme;20 07 2004 - 27 06 2007 ;d777966d-34ed-4405-b36f-6865a628b203;http://kanselarij.vo.data.gift/id/mandaten/4f24a12a-8870-11e9-8d87-9cb6d01298a1
-Regering-Peeters I;28 06 2007 - 13 07 2009;1c19e63b-a1dc-4408-a21c-2bb05e4c399a;http://kanselarij.vo.data.gift/id/mandaten/4f24a4c2-8870-11e9-8d87-9cb6d01298a1
-Regering-Peeters II;13 07 2009 - 25 07 2014;3a74e981-db6c-4062-acea-7d6a87f39ca7;http://kanselarij.vo.data.gift/id/mandaten/4f24a864-8870-11e9-8d87-9cb6d01298a1
-Regering-Bourgeois;25 05 2014 - ;73ca7234-d8bc-4b17-acab-88f20500f74e;http://kanselarij.vo.data.gift/id/mandaten/4f24ada0-8870-11e9-8d87-9cb6d01298a1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+regering;timerange;uuid
+Regering-Geens I;22 12 1981 - 10 12 1985;80d3c11d-cbac-4697-a7ad-927ef72293b7
+Regering-Geens II;10 12 1985 - 03 02 1988;4c80a6c7-3e59-4be1-8051-e44fd6664e3c
+Regering-Geens III;03 02 1988 - 18 10 1988;84eed8fd-af88-432f-b48b-e6b26ad16bac
+Regering-Geens IV;18 10 1988 - 21 01 1992;98d73e86-69c2-4356-b979-ae1eb7949fc8
+Regering-Van den Brande I;21 01 1992 - 05 02 1992;ade06181-74fd-44aa-bbcc-c0c7cffc8b1f
+Regering-Van den Brande II;05 02 1992 - 20 10 1992;7b02fca1-ce9f-4644-a67d-0fa6c32927c5
+Regering-Van den Brande III;20 10 1992 - 20 06 1995;35a6bd0f-508a-4334-894e-3244861a8385
+Regering-Van den Brande IV;20 06 1995 - 13 07 1999;3b4203ef-c0fc-4986-9b8f-9777448f566f
+Regering-Dewael;13 07 1999 - 05 06 2003;32f190c4-42f8-42b3-b7b5-c8600b2cc77e
+Regering-Somers;10 06 2003 - 20 07 2004 ;74b0b23a-053b-4273-968c-81da6c15be4e
+Regering-Leterme;20 07 2004 - 27 06 2007 ;d777966d-34ed-4405-b36f-6865a628b203
+Regering-Peeters I;28 06 2007 - 13 07 2009;1c19e63b-a1dc-4408-a21c-2bb05e4c399a
+Regering-Peeters II;13 07 2009 - 25 07 2014;3a74e981-db6c-4062-acea-7d6a87f39ca7
+Regering-Bourgeois;25 05 2014 - 02 07 2019;73ca7234-d8bc-4b17-acab-88f20500f74e
+Regering-Homans;02 07 2019 -;ab8d111a-7d30-4b8a-a2e9-57c5d52f1153

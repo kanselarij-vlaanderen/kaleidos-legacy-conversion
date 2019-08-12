@@ -16,8 +16,6 @@ class Mandatee:
         self.start_date = start_date
         self.end_date = end_date
         self.official_title = None
-        self.order = None
-        self.mandate_uri = None
         self.policy_domains = []
 
         self.deprecated = False
@@ -41,7 +39,6 @@ class Mandatee:
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.DCT['source'], URIRef(self.src_uri)),
             (uri, ns.MANDAAT['start'], Literal(self.start_date.isoformat(), datatype=XSD.date)),
-            (uri, ns.ORG['holds'], URIRef(self.mandate_uri)),
             (uri, ns.MANDAAT['isBestuurlijkeAliasVan'], URIRef(self.person.uri(base_uri))),
         ]
         if self.end_date:

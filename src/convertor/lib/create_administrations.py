@@ -17,6 +17,5 @@ def create_administrations():
             resignation_date = datetime.strptime(end.strip(), '%d %m %Y').date() if end.strip() else None
             gov = GoverningBody(row['regering'], installation_date, resignation_date)
             gov.uuid = row['uuid'].strip()
-            gov.minister_mandate_uri = row['minister_mandate_uri'].strip()
             governments.append(gov)
         return governments
