@@ -12,7 +12,7 @@ def create_administrations():
         reader = csv.DictReader(csvfile, delimiter=';', quoting=csv.QUOTE_NONE)
         governments = []
         for row in reader:
-            start, end = row['timerange'].split(' - ')
+            start, end = row['timerange'].split('-')
             installation_date = datetime.strptime(start.strip(), '%d %m %Y').date()
             resignation_date = datetime.strptime(end.strip(), '%d %m %Y').date() if end.strip() else None
             gov = GoverningBody(row['regering'], installation_date, resignation_date)
