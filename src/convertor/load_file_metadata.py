@@ -20,5 +20,9 @@ def load_file_metadata(path):
             metadata_lut_part['filesize'] = line['filesize']['parsed']
         if line['filename']['success'] and line['filename']['parsed']:
             metadata_lut_part['filename'] = line['filename']['parsed']
+        if line['creation_date']['success'] and line['creation_date']['parsed']:
+            metadata_lut_part['creation_date'] = line['creation_date']['parsed']
+        if line['modified_date']['success'] and line['modified_date']['parsed']:
+            metadata_lut_part['modified_date'] = line['modified_date']['parsed']
         metadata_lut[line['filename']['parsed']] = metadata_lut_part
     return metadata_lut

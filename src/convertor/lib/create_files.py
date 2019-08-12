@@ -28,6 +28,8 @@ def create_file(file_src, metadata_lut=None, physical_file_folder=None, uuid_lut
                 file.size = f['filesize']
             if 'creation_date' in f:
                 file.created = f['creation_date']
+            if 'modified_date' in f:
+                file.modified = f['modified_date']
         except KeyError:
             pass
     if uuid_lut:

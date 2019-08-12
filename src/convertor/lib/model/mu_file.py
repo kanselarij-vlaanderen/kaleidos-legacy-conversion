@@ -17,6 +17,7 @@ class MuFile:
         self.mimetype = None
         self.extension = None
         self.created = None
+        self.modified = None
         self.folder_path = ''
 
     @classmethod
@@ -27,6 +28,16 @@ class MuFile:
         file.extension = doc.extension()
         file.mimetype = doc.mimetype
         return file
+
+    @staticmethod
+    def escape_filename(filename):
+        WINDOWS_ILLEGAL_CHARS = ['<', '>', ':', '\"', '/', '\\', '|', '?', '*']
+        ASCII_CONTROL_CHARS = [chr(i) for i in range(32)]
+        SQUASH_CHAR = '_'
+        for ch in WINDOWS_ILLEGAL_CHARS + ASCII_CONTROL_CHARS:
+            if ch in filename:
+                filename = filename.replace(ch, SQUASH_CHAR)
+        return filename
 
     def uri(self, base_uri):
         return base_uri + "files/" + "{}".format(self.uuid)
@@ -52,7 +63,7 @@ class MuFile:
         triples = [
             (virtual_file_uri, RDF['type'], ns.NFO['FileDataObject']),
             (virtual_file_uri, ns.MU['uuid'], Literal(self.uuid)),
-            (virtual_file_uri, ns.NFO['fileName'], Literal(self.name + '.' + self.extension)), #NFO spec: "Name of the file, together with the extension"
+            (virtual_file_uri, ns.NFO['fileName'], Literal(self.escape_filename(self.name) + '.' + self.extension)), #NFO spec: "Name of the file, together with the extension"
             (virtual_file_uri, ns.DCT['format'], Literal(self.mimetype)),
             (virtual_file_uri, ns.DBPEDIA['fileExtension'], Literal(self.extension)),
 
@@ -70,7 +81,12 @@ class MuFile:
             ]
         if self.created:
             triples += [
-                (virtual_file_uri, ns.DCT['created'], Literal(self.created.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)),
+                # (virtual_file_uri, ns.DCT['created'], Literal(self.created.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)),
                 (physical_file_uri, ns.DCT['created'], Literal(self.created.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)),
+            ]
+        if self.modified:
+            triples += [
+                # (virtual_file_uri, ns.DCT['modified'], Literal(self.modified.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)),
+                (physical_file_uri, ns.DCT['modified'], Literal(self.modified.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)),
             ]
         return triples
