@@ -42,10 +42,11 @@ class Document:
     def access_level_uri(self):
         if any(doc.levenscyclus_status == 'Uitgesteld' for ver, doc in self.document_versions.items()):
             return ACCESS_LEVEL_URI["Intern overheid"]
-        elif any(doc.in_news_item for ver, doc in self.document_versions.items()):
-            return ACCESS_LEVEL_URI["Actief openbaar"]
         elif any(doc.levenscyclus_status == 'Openbaar' for ver, doc in self.document_versions.items()):
-            return ACCESS_LEVEL_URI["Beperkt openbaar"]
+            if any(doc.in_news_item for ver, doc in self.document_versions.items()):
+                return ACCESS_LEVEL_URI["Actief openbaar"]
+            else:
+                return ACCESS_LEVEL_URI["Beperkt openbaar"]
         else:
             return None
             
