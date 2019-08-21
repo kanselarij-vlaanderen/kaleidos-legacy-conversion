@@ -22,9 +22,9 @@ class Document:
         except AttributeError:
             self.name = first_document_version.source_name
         try:
-            self.document_versions = {first_document_version.version: first_document_version}
+            self.document_versions = [(first_document_version.version, first_document_version)]
         except AttributeError:
-            self.document_versions = {1: first_document_version}
+            self.document_versions = [(1, first_document_version)]
         self.doc_type_uri = first_document_version.doc_type_uri
 
     def __hash__(self):
@@ -36,14 +36,14 @@ class Document:
     @property
     def confidential(self):
         # No 'vertrouwelijk' at document-version level in new model, so better safe than sorry with 'any'
-        return any(doc.confidential for ver, doc in self.document_versions.items())
+        return any(doc.confidential for ver, doc in self.document_versions)
 
     @property
     def access_level_uri(self):
-        if any(doc.levenscyclus_status == 'Uitgesteld' for ver, doc in self.document_versions.items()):
+        if any(doc.levenscyclus_status == 'Uitgesteld' for ver, doc in self.document_versions):
             return ACCESS_LEVEL_URI["Intern overheid"]
-        elif any(doc.levenscyclus_status == 'Openbaar' for ver, doc in self.document_versions.items()):
-            if any(doc.in_news_item for ver, doc in self.document_versions.items()):
+        elif any(doc.levenscyclus_status == 'Openbaar' for ver, doc in self.document_versions):
+            if any(doc.in_news_item for ver, doc in self.document_versions):
                 return ACCESS_LEVEL_URI["Actief openbaar"]
             else:
                 return ACCESS_LEVEL_URI["Beperkt openbaar"]
@@ -81,7 +81,7 @@ class Document:
         #     triples.append((uri, ns.EXT['omschrijving'], Literal(self.description)))
         if self.created:
             triples.append((uri, ns.DCT['created'], Literal(self.created, datatype=XSD.dateTime)))
-        for ver, doc in self.document_versions.items():
+        for ver, doc in self.document_versions:
             triples.append((uri, ns.BESLUITVORMING['heeftVersie'], URIRef(doc.uri(base_uri))))
         if self.doc_type_uri:
             triples.append((uri, ns.EXT['documentType'], URIRef(self.doc_type_uri)))

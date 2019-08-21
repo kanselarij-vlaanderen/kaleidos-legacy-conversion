@@ -94,10 +94,9 @@ for document_version in document_versions:
         version = 1
     try:
         document = documents_by_name[name]
-        if version in document.document_versions.keys():
-            logging.warning("Already a version '{}' in the versions collection of document '{}' ... skipping".format(version, name))
-        else:
-            document.document_versions[version] = document_version
+        if any(version == ver for ver, doc in document.document_versions):
+            logging.warning("Already a version '{}' in the versions collection of document '{}'".format(version, name))
+        document.document_versions.append((version, document_version))
     except KeyError:
         document = Document(document_version)
         documents_by_name[name] = document
