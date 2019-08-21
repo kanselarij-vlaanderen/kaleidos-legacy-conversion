@@ -2,7 +2,7 @@
 import itertools
 import logging
 
-from .model.document_name import AgendaName, VrBeslissingsficheName, VrNotulenName
+from .model.document_name import AgendaName, VrBeslissingsficheName, VrNotulenName, VrDocumentName
 from .model.agenda import Agenda, Agendapunt
 
 def by_session(doc):
@@ -25,6 +25,13 @@ def is_item_doc(doc): # All documents that are part of the agenda item
 
 def is_unparsed(doc):
     return doc.parsed_name is None
+
+def announcement_related(doc):
+    if is_bf(doc) and (doc.punt_type in ('MEDEDELING', 'VARIA')):
+        return True
+    if isinstance(doc.parsed_name, VrDocumentName) and (doc.doc_type in ('MED', 'VAR')):
+        return True
+    return doc._type_ref in ('Mededeling', 'Varia')
 
 # Create agendas with item structure out of fiches
 def create_agendas(document_versions):
@@ -54,8 +61,8 @@ def create_agendas(document_versions):
         for item_number, docs_2 in docs_per_agenda_item:
             docs_2 = list(docs_2)
             if item_number: # Regular items & new style announcements
-                announcement = list(filter(lambda d: d._type_ref == 'Mededeling', docs_2))
-                non_announcement = list(filter(lambda d: not (d._type_ref == 'Mededeling'), docs_2))
+                announcement = list(filter(announcement_related, docs_2))
+                non_announcement = list(filter(lambda d: not announcement_related(d), docs_2)) # Inverse of other condition, so we don't miss anything
                 for docs_3 in (announcement, non_announcement):
                     if docs_3:
                         item = Agendapunt(item_number)
