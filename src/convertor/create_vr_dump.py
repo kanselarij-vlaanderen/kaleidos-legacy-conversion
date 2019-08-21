@@ -160,6 +160,11 @@ if __name__ == "__main__":
         for triple in doc.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
 
+    filename = 'kaleidos-vr-sensitive-1-4.ttl'
+    g.serialize(format='turtle', destination=os.path.join(config.TTL_FOLDER_PATH, filename))
+
+    g = rdflib.Graph(identifier=rdflib.URIRef(config.GRAPH_NAME))
+
     for agenda in agendas:
         for triple in agenda.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
@@ -167,9 +172,19 @@ if __name__ == "__main__":
             for triple in ap.triples(ns, config.KALEIDOS_API_URI):
                 g.add(triple)
 
+    filename = 'kaleidos-vr-sensitive-2-4.ttl'
+    g.serialize(format='turtle', destination=os.path.join(config.TTL_FOLDER_PATH, filename))
+
+    g = rdflib.Graph(identifier=rdflib.URIRef(config.GRAPH_NAME))
+
     for dossier in dossiers_by_year_dossiernr.values():
         for triple in dossier.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
+
+    filename = 'kaleidos-vr-sensitive-3-4.ttl'
+    g.serialize(format='turtle', destination=os.path.join(config.TTL_FOLDER_PATH, filename))
+
+    g = rdflib.Graph(identifier=rdflib.URIRef(config.GRAPH_NAME))
 
     for news_item in news_items:
         for triple in news_item.triples(ns, config.KALEIDOS_API_URI):
@@ -187,5 +202,5 @@ if __name__ == "__main__":
         for triple in submitter.triples(ns, config.KALEIDOS_API_URI):
             g.add(triple)
 
-    filename = 'kaleidos-vr-sensitive.ttl'
+    filename = 'kaleidos-vr-sensitive-4-4.ttl'
     g.serialize(format='turtle', destination=os.path.join(config.TTL_FOLDER_PATH, filename))
