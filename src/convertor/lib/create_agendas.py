@@ -27,9 +27,9 @@ def is_unparsed(doc):
     return doc.parsed_name is None
 
 def announcement_related(doc):
-    if is_bf(doc) and (doc.punt_type in ('MEDEDELING', 'VARIA')):
+    if is_bf(doc) and (doc.parsed_name.punt_type in ('MEDEDELING', 'VARIA')):
         return True
-    if isinstance(doc.parsed_name, VrDocumentName) and (doc.doc_type in ('MED', 'VAR')):
+    if isinstance(doc.parsed_name, VrDocumentName) and (doc.parsed_name.doc_type in ('MED', 'VAR')):
         return True
     return doc._type_ref in ('Mededeling', 'Varia')
 
