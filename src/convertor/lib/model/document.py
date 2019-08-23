@@ -19,8 +19,10 @@ class Document:
         self.created = first_document_version.mufile.created
         try:
             self.name = first_document_version.parsed_name.name()
+            self.name_vr = self.name
         except AttributeError:
             self.name = first_document_version.source_name
+            self.name_vr = None
         try:
             self.document_versions = [(first_document_version.version, first_document_version)]
         except AttributeError:
@@ -74,7 +76,8 @@ class Document:
                             URIRef(self.access_level_uri)))
         if self.name:
             triples.append((uri, ns.BESLUITVORMING['stuknummerVR'], Literal(self.name)))
-            triples.append((uri, ns.EXT['stuknummerVROriginal'], Literal(self.name)))
+        if self.name_vr:
+            triples.append((uri, ns.EXT['stuknummerVROriginal'], Literal(self.name_vr)))
         # if self.title:
         #     triples.append((uri, ns.DCT['title'], Literal(self.title)))
         # if self.description:

@@ -152,8 +152,7 @@ class DocumentVersion:
         #     triples.append((uri, ns.DCT['title'], Literal(self.title)))
         # if self.short_title:
         #     triples.append((uri, ns.EXT['omschrijving'], Literal(self.short_title)))
-        # ext:idNumber # TODO
-        triples.append((uri, ns.EXT['gekozenDocumentNaam'], Literal(self.source_name)))
+        # triples.append((uri, ns.EXT['gekozenDocumentNaam'], Literal(self.source_name)))
         triples.append((uri, ns.EXT['file'], URIRef(self.mufile.uri(base_uri))))
 
         return triples
