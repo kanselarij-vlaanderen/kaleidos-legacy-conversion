@@ -83,7 +83,7 @@ class Document:
         # if self.description:
         #     triples.append((uri, ns.EXT['omschrijving'], Literal(self.description)))
         if self.created:
-            triples.append((uri, ns.DCT['created'], Literal(self.created, datatype=XSD.dateTime)))
+            triples.append((uri, ns.DCT['created'], Literal(self.created.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)))
         for ver, doc in self.document_versions:
             triples.append((uri, ns.BESLUITVORMING['heeftVersie'], URIRef(doc.uri(base_uri))))
         if self.doc_type_uri:
