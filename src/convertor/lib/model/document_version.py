@@ -145,9 +145,9 @@ class DocumentVersion:
         version = self.version if self.version else 1
         triples.append((uri, ns.EXT['versieNummer'], Literal(version)))
         if self.mufile.created:
-            triples.append((uri, ns.DCT['created'], Literal(self.mufile.created.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)))
-        else:
-            pass # FIXME (self.zittingdatum maybe?)
+            triples.append((uri,
+                            ns.DCT['created'],
+                            Literal(self.mufile.created.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)))
         # if self.title:
         #     triples.append((uri, ns.DCT['title'], Literal(self.title)))
         # if self.short_title:
