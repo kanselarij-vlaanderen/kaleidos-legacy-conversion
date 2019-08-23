@@ -81,12 +81,12 @@ class MuFile:
             ]
         if self.created:
             triples += [
-                # (virtual_file_uri, ns.DCT['created'], Literal(self.created.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)),
+                (virtual_file_uri, ns.DCT['created'], Literal(self.created.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)),
                 (physical_file_uri, ns.DCT['created'], Literal(self.created.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)),
             ]
         if self.modified:
             triples += [
-                # (virtual_file_uri, ns.DCT['modified'], Literal(self.modified.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)),
+                (virtual_file_uri, ns.DCT['modified'], Literal(self.modified.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)),
                 (physical_file_uri, ns.DCT['modified'], Literal(self.modified.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)),
             ]
         return triples
