@@ -319,7 +319,7 @@ class Agendapunt():
                 triples.append((procedurestap_uri, ns.PROV['generated'], URIRef(self.news_item.uri(base_uri))))
             for doc in self.documents:
                 triples.append((procedurestap_uri,
-                                ns.EXT['bevatDocumentVersie'],
+                                ns.EXT['bevatDocumentversie'],
                                 URIRef(doc.uri(base_uri))))
             # for rel_procedurestap_uri in self.gerelateerde_procedurestappen_uris:
             #     triples.append((procedurestap_uri, ns.DCT['relation'], URIRef(rel_procedurestap_uri)))
