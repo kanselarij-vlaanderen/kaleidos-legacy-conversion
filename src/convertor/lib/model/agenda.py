@@ -149,10 +149,7 @@ class Agenda:
         # Agenda & Zitting
         for punt in self.agendapunten:
             zitting_triples.append((zitting_uri, ns.BESLUITVORMING['isAangevraagdVoor'], URIRef(punt.procedurestap_uri(base_uri))))
-            if punt.has_decision:
-                triples.append((uri, ns.DCT['hasPart'], URIRef(punt.uri(base_uri))))
-            else:
-                triples.append((uri, ns.EXT['mededeling'], URIRef(punt.uri(base_uri))))
+            triples.append((uri, ns.DCT['hasPart'], URIRef(punt.uri(base_uri))))
             
         if self.notulen:
             # Notulen
@@ -277,15 +274,31 @@ class Agendapunt():
         # Agendapunt
         uri = URIRef(self.uri(base_uri))
         triples = [
+            (uri, RDF['type'], ns.BESLUIT['Agendapunt']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
             (uri, ns.DCT['source'], URIRef(self.src_uri)),
             (uri, ns.EXT['prioriteit'], Literal(self.volgnr)),
-            (uri, RDF['type'], ns.BESLUIT['Agendapunt'] if self.has_decision else ns.BESLUITVORMING['Mededeling']),
         ]
+        if self.short_title:
+            triples.append((uri, ns.DCT['alternative'], Literal(self.short_title)))
+        if self.title:
+            triples.append((uri, ns.DCT['title'], Literal(self.title)))
+        if self.news_item:
+            for theme in self.news_item.themes:
+                triples.append((uri, ns.EXT['agendapuntSubject'], URIRef(theme.uri(base_uri))))
         for doc in self.documents:
-            triples += [
-                (uri, ns.EXT['bevatAgendapuntDocumentversie'] if self.has_decision else ns.EXT['mededelingBevatDocumentversie'], URIRef(doc.uri(base_uri))),
-            ]
+            triples.append((uri,
+                            ns.EXT['bevatAgendapuntDocumentversie'],
+                            URIRef(doc.uri(base_uri))))
+        if self.is_announcement:
+            triples.append((uri,
+                            ns.EXT['wordtGetoondAlsMededeling'],
+                            Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))))
+        else:
+            triples.append((uri,
+                            ns.EXT['wordtGetoondAlsMededeling'],
+                            Literal('false', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))))
+            triples.append((uri, RDF['type'], ns.BESLUITVORMING['Mededeling'])) # Subtype
 
         if self.has_decision: # Agenda item with decision
             # Besluit
@@ -311,9 +324,13 @@ class Agendapunt():
                 (procedurestap_uri, RDF['type'], ns.DBPEDIA['UnitOfWork']),
                 (procedurestap_uri, ns.MU['uuid'], Literal(self.procedurestap_uuid)),
                 (procedurestap_uri, ns.DCT['source'], URIRef(self.src_uri)),
+                (procedurestap_uri, ns.DCT['created'], Literal(self.zitting.geplande_start.isoformat(), datatype=XSD.dateTime)), # For sorting i new app
                 (procedurestap_uri, ns.EXT['modified'], Literal(self.zitting.geplande_start.isoformat(), datatype=XSD.dateTime)),
                 (procedurestap_uri, ns.BESLUITVORMING['isGeagendeerdVia'], uri),
                 (procedurestap_uri, ns.EXT['procedurestapHeeftBesluit'], URIRef(besluit_uri)),
+                (procedurestap_uri,
+                 ns.EXT['wordtGetoondAlsMededeling'],
+                 Literal('true' if self.is_announcement else 'false', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean')))
             ]
             if self.news_item:
                 triples.append((procedurestap_uri, ns.PROV['generated'], URIRef(self.news_item.uri(base_uri))))
@@ -323,51 +340,42 @@ class Agendapunt():
                                 URIRef(doc.uri(base_uri))))
             # for rel_procedurestap_uri in self.gerelateerde_procedurestappen_uris:
             #     triples.append((procedurestap_uri, ns.DCT['relation'], URIRef(rel_procedurestap_uri)))
-            
-            # Procedurestap & Agendapunt
+
+            # Procedurestap
             procedurestap_uri = URIRef(self.procedurestap_uri(base_uri))
             triples += [
-                # (uri, ns.BESLUITVORMING['formeelOK'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),            
-                # (procedurestap_uri, ns.BESLUITVORMING['formeelOK'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),            
-                (uri, ns.EXT['wordtGetoondAlsMededeling'], Literal('true' if self.is_announcement else 'false', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
-                (procedurestap_uri, ns.EXT['wordtGetoondAlsMededeling'], Literal('true' if self.is_announcement else 'false', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+                # (uri, ns.BESLUITVORMING['formeelOK'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+                # (procedurestap_uri, ns.BESLUITVORMING['formeelOK'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
                 # besluitvorming:isAangevraagdVoor via Agenda
                 # besluitvorming:vertrouwelijkheid TODO, wordt een bool?
             ]
             if self.short_title:
-                triples += [
-                    (procedurestap_uri, ns.DCT['alternative'], Literal(self.short_title)),
-                    (uri, ns.DCT['alternative'], Literal(self.short_title)),
-                ]
+                triples.append((procedurestap_uri, 
+                                ns.DCT['alternative'],
+                                Literal(self.short_title)))
             if self.title:
-                triples += [
-                    (procedurestap_uri, ns.DCT['title'], Literal(self.title)),
-                    (uri, ns.DCT['title'], Literal(self.title)),
-                ]
+                triples.append((procedurestap_uri,
+                                ns.DCT['title'],
+                                Literal(self.title)))
             if self.news_item:
                 for theme in self.news_item.themes:
-                    triples += [
-                        (uri, ns.EXT['agendapuntSubject'], URIRef(theme.uri(base_uri))),
-                        (procedurestap_uri, ns.DCT['subject'], URIRef(theme.uri(base_uri))),
-                    ]
+                    triples.append((procedurestap_uri,
+                                    ns.DCT['subject'],
+                                    URIRef(theme.uri(base_uri))))
             for mandatee in self.beslissingsfiche.indieners:
-                triples += [
-                    (uri, ns.EXT['heeftBevoegdeVoorAgendapunt'], URIRef(mandatee.uri(base_uri))),
-                    (procedurestap_uri, ns.BESLUITVORMING['heeftBevoegde'], URIRef(mandatee.uri(base_uri))),
-                ]
+                triples.append((procedurestap_uri,
+                                ns.BESLUITVORMING['heeftBevoegde'],
+                                URIRef(mandatee.uri(base_uri))))
             # ext:subcaseProcedurestapFase # TODO, na aanmaken v procedurestappen de fase materializen adhv aantal in dossier? Low prio
             triples += besluit_triples
-        else: # Agenda item without decision
+        else:
             try:
-                triples += [
-                    # (uri, ns.EXT['created'], URIRef(rel_doc.uri(base_uri))),
-                    # (uri, ns.EXT['modified'], URIRef(rel_doc.uri(base_uri))),
-                ]
-                full_title = (self.title + '\n') if self.title else '' + self.short_title if self.short_title else ''
-                if full_title:
-                    triples += [
-                        (uri, ns.EXT['title'], Literal(full_title)),
-                    ]
-            except IndexError:
-                pass
+                submitters = next(filter(lambda d: d.indieners is not [], self.documents)).indieners
+                for mandatee in submitters:
+                    triples.append((uri,
+                                    ns.EXT['heeftIndiener'],
+                                    URIRef(mandatee.uri(base_uri))))
+            except StopIteration:
+                pass # No submitters
+
         return triples
