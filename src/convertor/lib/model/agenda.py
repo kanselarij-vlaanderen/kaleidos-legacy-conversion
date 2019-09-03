@@ -126,9 +126,9 @@ class Agenda:
         triples = [
             (uri, RDF['type'], ns.BESLUITVORMING['Agenda']),
             (uri, ns.MU['uuid'], Literal(self.uuid)),
-            (uri, ns.EXT['finaleVersie'], Literal(True, datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+            (uri, ns.EXT['finaleVersie'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
             (uri, ns.EXT['agendaNaam'], Literal('')),
-            (uri, ns.EXT['accepted'], Literal(True, datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
+            (uri, ns.EXT['accepted'], Literal('true', datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))),
             (uri, ns.BESLUIT['isAangemaaktVoor'], URIRef(self.zitting_uri(base_uri))),
         ]
 
