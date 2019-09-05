@@ -43,12 +43,12 @@ class Document:
     @property
     def access_level_uri(self):
         if any(doc.levenscyclus_status == 'Uitgesteld' for ver, doc in self.document_versions):
-            return ACCESS_LEVEL_URI["Intern overheid"]
+            return ACCESS_LEVEL_URI["Intern Regering"]
         elif any(doc.levenscyclus_status == 'Openbaar' for ver, doc in self.document_versions):
             if any(doc.in_news_item for ver, doc in self.document_versions):
-                return ACCESS_LEVEL_URI["Actief openbaar"]
+                return ACCESS_LEVEL_URI["Publiek"]
             else:
-                return ACCESS_LEVEL_URI["Beperkt openbaar"]
+                return ACCESS_LEVEL_URI["Intern Overheid"]
         else:
             return None
             
