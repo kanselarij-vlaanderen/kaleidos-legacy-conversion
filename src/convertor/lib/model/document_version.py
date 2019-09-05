@@ -7,6 +7,8 @@ from rdflib import URIRef, Literal
 
 from .document_name import VersionedDocumentName, VrBeslissingsficheName, VrDocumentName, VrNotulenName
 
+from lib.code_lists.access_levels import ACCESS_LEVEL_URI
+
 def search_government(governments, date):
     for gov in governments:
         if date > gov.installation_date:
@@ -132,6 +134,20 @@ class DocumentVersion:
         else:
             return None
 
+    @property
+    def access_level_uri(self):
+        if self.confidential:
+            return None
+        elif self.levenscyclus_status == 'Uitgesteld':
+            return ACCESS_LEVEL_URI["Intern Regering"]
+        elif self.levenscyclus_status == 'Openbaar':
+            if self.in_news_item:
+                return ACCESS_LEVEL_URI["Publiek"]
+            else:
+                return ACCESS_LEVEL_URI["Intern Overheid"]
+        else:
+            return None
+
     def uri(self, base_uri):
         return base_uri + "id/document-versies/" + "{}".format(self.uuid)
 
@@ -148,6 +164,18 @@ class DocumentVersion:
             triples.append((uri,
                             ns.DCT['created'],
                             Literal(self.mufile.created.isoformat().replace('+00:00', 'Z'), datatype=XSD.dateTime)))
+        if self.confidential or (not self.access_level_uri):
+            # Level "Intern kabinet" not included in initial implementation. Is regarded as equal to 'vertrouwelijk'
+            confidential = 'true'
+        else:
+            confidential = 'false'
+        triples.append((uri,
+                        ns.EXT['vertrouwelijk'],
+                        Literal(confidential, datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))))
+        if self.access_level_uri:
+            triples.append((uri,
+                            ns.EXT['toegangsniveauVoorDocument'],
+                            URIRef(self.access_level_uri)))
         # if self.title:
         #     triples.append((uri, ns.DCT['title'], Literal(self.title)))
         # if self.short_title:
