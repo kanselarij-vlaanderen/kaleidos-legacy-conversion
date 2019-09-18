@@ -11,7 +11,7 @@ from lib.code_lists.access_levels import ACCESS_LEVEL_URI
 
 def search_government(governments, date):
     for gov in governments:
-        if date > gov.installation_date:
+        if date >= gov.installation_date:
             if (gov.resignation_date and date < gov.resignation_date) or (not gov.resignation_date):
                 return gov
         continue

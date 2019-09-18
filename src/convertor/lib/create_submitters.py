@@ -18,7 +18,7 @@ def search_person(persons, family_name, given_name):
 
 def find_administration(administrations, date):
     for gov in administrations:
-        if date > gov.installation_date:
+        if date >= gov.installation_date:
             if gov.resignation_date:
                 if date < gov.resignation_date:
                     return gov
