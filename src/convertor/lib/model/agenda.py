@@ -40,9 +40,10 @@ class Agenda:
 
         self.zitting_uuid = str(uuid.uuid1())
         self.notulen_uuid = str(uuid.uuid1())
-
+        self.agenda_doc_uuid = str(uuid.uuid1())
         self.datum = datum
         self.zittingnr = zittingnr
+        self.type_ref = None
 
         self.agendapunten = []
         self.notulen = None
@@ -120,6 +121,9 @@ class Agenda:
     def notulen_uri(self, base_uri):
         return base_uri + "id/notulen/" + "{}".format(self.notulen_uuid)
 
+    def agenda_doc_uri(self, base_uri):
+        return base_uri + "id/legacy-agenda-document/" + "{}".format(self.agenda_doc_uuid)
+
     def triples(self, ns, base_uri): # DONE, except varia
         # Agenda
         uri = URIRef(self.uri(base_uri))
@@ -164,7 +168,17 @@ class Agenda:
             ]
         else:
             notulen_triples = []
-        return triples + zitting_triples + notulen_triples
+        if self.agenda_doc:
+            # Agenda document
+            agenda_doc_uri = URIRef(self.agenda_doc_uri(base_uri))
+            agenda_triples = [
+                (agenda_doc_uri, RDF['type'], ns.EXT['LegacyAgendaDocument']),
+                (agenda_doc_uri, ns.MU['uuid'], Literal(self.agenda_doc_uuid)),
+                (zitting_uri, ns.EXT['algemeneAgenda'], URIRef(self.agenda_doc.uri(base_uri)))
+                ]
+        else:
+            agenda_triples = []
+        return triples + zitting_triples + notulen_triples + agenda_triples
 
 
 class Agendapunt():

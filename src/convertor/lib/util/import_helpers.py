@@ -68,7 +68,7 @@ def import_csv(path, encoding='utf-8', custom_trans={}):
                                 logging.info(logstring)
                             else:
                                 logging.debug(logstring)
-                            
+
 
                 else:
                     row_result[key] = {'parsed': value, 'source': value, 'success': True}
@@ -77,5 +77,6 @@ def import_csv(path, encoding='utf-8', custom_trans={}):
             else:
                 result.append(row_result)
                 logging.debug("{}: successfully parsed line {}:\n{}".format(file, n, pformat(row_result)))
-        logging.info("{}: sucessfully parsed {} out of {} lines ({:.1f}%)".format(path, len(result), n, len(result)/n*100))
+        if n > 0:
+            logging.info("{}: sucessfully parsed {} out of {} lines ({:.1f}%)".format(path, len(result), n, len(result)/n*100))
     return result
