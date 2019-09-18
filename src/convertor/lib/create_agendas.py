@@ -66,6 +66,7 @@ def create_agendas(document_versions):
                 for docs_3 in (announcement, non_announcement):
                     if docs_3:
                         item = Agendapunt(item_number)
+                        item.type_ref = docs_3[0]._type_ref
                         item.src_uri = docs_3[0].src_uri
                         agenda.agendapunten.append(item)
                         item.zitting = agenda

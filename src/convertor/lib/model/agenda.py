@@ -219,7 +219,10 @@ class Agendapunt():
 
     @property
     def is_announcement(self):
-        return (not self.beslissingsfiche) or (self.beslissingsfiche.parsed_name.punt_type in ('MEDEDELING', 'VARIA'))
+        if self.zitting.datum == datetime.date(2019,9,6):
+            return (self.type_ref == 'Nota')
+        else:
+            return (not self.beslissingsfiche) or (self.beslissingsfiche.parsed_name.punt_type in ('MEDEDELING', 'VARIA'))
         
     @property
     def has_decision(self):
