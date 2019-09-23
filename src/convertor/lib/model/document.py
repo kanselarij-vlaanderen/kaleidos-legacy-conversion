@@ -69,13 +69,14 @@ class Document:
             confidential = 'true'
         else:
             confidential = 'false'
-        triples.append((uri,
-                        ns.EXT['vertrouwelijk'],
-                        Literal(confidential, datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))))
-        if self.access_level_uri:
-            triples.append((uri,
-                            ns.EXT['toegangsniveauVoorDocument'],
-                            URIRef(self.access_level_uri)))
+        # No more confidentiality & access level properties at document level. Only at version level
+        # triples.append((uri,
+        #                 ns.EXT['vertrouwelijk'],
+        #                 Literal(confidential, datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))))
+        # if self.access_level_uri:
+        #     triples.append((uri,
+        #                     ns.EXT['toegangsniveauVoorDocument'],
+        #                     URIRef(self.access_level_uri)))
         if self.name:
             triples.append((uri, ns.BESLUITVORMING['stuknummerVR'], Literal(self.name)))
         if self.name_vr:
