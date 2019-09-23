@@ -160,7 +160,8 @@ class Agenda:
                 # (notulen_uri, ns.EXT['aangemaaktOp'], ),
                 # (notulen_uri, ns.EXT['description'], ),
                 (zitting_uri, ns.EXT['algemeneNotulen'], notulen_uri),
-                (notulen_uri, ns.EXT['getekendeDocumentVersiesVoorNotulen'], URIRef(self.notulen.uri(base_uri)))
+                (notulen_uri, ns.EXT['getekendeDocumentVersiesVoorNotulen'], URIRef(self.notulen.uri(base_uri))),
+                (zitting_uri, ns.EXT['zittingDocumentversie'], URIRef(self.notulen.uri(base_uri))) # Band-aid, as frontend currently doesn't implement above
             ]
         else:
             notulen_triples = []
