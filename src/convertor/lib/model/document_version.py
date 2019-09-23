@@ -174,7 +174,7 @@ class DocumentVersion:
                         Literal(confidential, datatype=URIRef('http://mu.semte.ch/vocabularies/typed-literals/boolean'))))
         if self.access_level_uri:
             triples.append((uri,
-                            ns.EXT['toegangsniveauVoorDocument'],
+                            ns.EXT['toegangsniveauVoorDocumentVersie'],
                             URIRef(self.access_level_uri)))
         # if self.title:
         #     triples.append((uri, ns.DCT['title'], Literal(self.title)))
