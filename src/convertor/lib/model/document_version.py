@@ -5,7 +5,7 @@ import uuid
 from rdflib.namespace import RDF, XSD
 from rdflib import URIRef, Literal
 
-from .document_name import VersionedDocumentName, VrBeslissingsficheName, VrDocumentName, VrNotulenName
+from .document_name import VersionedDocumentName, VrBeslissingsficheName, VrDocumentName, VrNotulenName, AgendaName
 
 from lib.code_lists.access_levels import ACCESS_LEVEL_URI
 
@@ -108,6 +108,8 @@ class DocumentVersion:
             return 'https://data.vlaanderen.be/id/concept/AardWetgeving/Decreet'
         elif isinstance(self.parsed_name, VrNotulenName):
             return 'http://kanselarij.vo.data.gift/id/concept/document-type-codes/e149294e-a8b8-4c11-83ac-6d4c417b079b'
+        elif isinstance(self.parsed_name, AgendaName):
+            return 'http://kanselarij.vo.data.gift/id/concept/document-type-codes/90bf0f69-295f-4324-bed8-910c4016d895'
         elif 'IF' in self.keywords:
             return 'http://kanselarij.vo.data.gift/id/concept/document-type-codes/c3f5b27e-70df-4b4b-a0f4-5412b7f1bfe1'
         elif 'BVR' in self.keywords:
