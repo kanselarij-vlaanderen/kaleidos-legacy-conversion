@@ -377,6 +377,8 @@ class Agendapunt():
             # ext:subcaseProcedurestapFase # TODO, na aanmaken v procedurestappen de fase materializen adhv aantal in dossier? Low prio
             triples += besluit_triples
         else:
+            if self.news_item:
+                print("#ANNOUNCEMENT-FIX: {};{};".format(self.src_uri, self.news_item.src_uri))
             try:
                 submitters = next(filter(lambda d: d.indieners is not [], self.documents)).indieners
                 for mandatee in submitters:
