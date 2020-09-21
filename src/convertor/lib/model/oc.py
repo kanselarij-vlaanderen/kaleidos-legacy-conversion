@@ -3,6 +3,8 @@ import uuid
 from rdflib.namespace import RDF
 from rdflib import URIRef, Literal
 from pytz import timezone
+import logging
+import textwrap
 
 TIMEZONE = timezone('Europe/Brussels')
 
@@ -14,13 +16,18 @@ class Session:
         self.started_at = started_at
 
         self.agenda_items = []
-        self.agenda = None
-        self.meeting_record = None
+        self.documents = []
 
     def __str__(self):
         retval = "OC Agenda voor de zitting van {}".format(self.started_at)
-        retval += '\n- agenda: {}'.format(self.agenda.name if self.agenda else '')
-        retval += '\n- notulen: {}'.format(self.meeting_record.name if self.meeting_record else '')
+        if self.documents:
+            retval += "\nDocumenten:"
+        for doc in self.documents:
+            retval += textwrap.indent("\n" + str(doc), "\t")
+        retval += "\nAgendapunten:"
+        for item in self.agenda_items:
+            retval += textwrap.indent("\n" + str(item), "\t")
+
         return retval
 
     def uri(self, base_uri):
@@ -38,6 +45,9 @@ class Session:
         for item in self.agenda_items:
             triples.append((uri, ns.OC['agendaItem'], URIRef(item.uri(base_uri))))
 
+        for doc in self.documents:
+            triples.append((uri, ns.OC['documents'], URIRef(doc.uri(base_uri))))
+
         return triples
 
 
@@ -48,22 +58,39 @@ class AgendaItem():
 
         self.priority = priority
         self.sub_priority = sub_priority
-        self.subject = subject
+        self.subject = subject if subject else ''
         self.submitter_uris = []
         self.case = None
 
         self.notification = None
         self.documents = []
 
+        self.notification_documents = []
+        
     def __str__(self):
         retval = 'OC Punt {}{} ({}): {}'.format(self.priority, self.sub_priority if self.sub_priority else '', self.case, self.subject.split('\n')[0][:60] + ' ...')
-        retval += '\nnotificatie: {}'.format(self.notification.name if self.notification else '')
+        retval += '\n\tnotificatie: {}'.format(self.notification)
+        if self.documents:
+            retval += "\n\tdocumenten:"
         for doc in self.documents:
-            retval += '\n * ' + doc.name
+            retval += '\n\t\t * ' + str(doc)
         return retval
 
     def uri(self, base_uri):
         return base_uri + "id/oc-agendapunten/" + "{}".format(self.uuid)
+
+    def link_document_refs(self, doc_lut):
+        if self.notification and self.notification._decision_doc_refs:
+            self.notification_documents = []
+            for rel_doc in self.notification._decision_doc_refs:
+                try:
+                    doc = doc_lut[rel_doc['source']][0] # WARNING: As value for doc_lut key is a tuple of docs (because of ambiguity), only take the first one
+                    self.notification_documents.append(doc)
+                    if doc not in self.documents:
+                        self.documents.append(doc)
+                except KeyError as e:
+                    logging.warning("No match found for notification-related doc '{}'".format(rel_doc['source']))
+        return self.notification_documents
 
     def triples(self, ns, base_uri):
         uri = URIRef(self.uri(base_uri))
@@ -78,12 +105,16 @@ class AgendaItem():
         if self.sub_priority:
             triples.append((uri, ns.OC['subPriority'], Literal(self.sub_priority)))
         if self.notification:
-            triples.append((uri, ns.OC['notification'], URIRef(self.notification.uri(base_uri))))
+            triples.append((uri, ns.OC['notification'], URIRef(self.notification.document.uri(base_uri)))) # Link to document
         if self.case:
             triples.append((URIRef(self.case.uri(base_uri)), ns.OC['caseAgendaItem'], uri))
         for doc in self.documents:
             triples += [
-                (uri, ns.OC['files'], URIRef(doc.uri(base_uri))),
+                (uri, ns.OC['documents'], URIRef(doc.document.uri(base_uri))), # Link to document
+            ]
+        for doc in self.notification_documents:
+            triples += [
+                (uri, ns.OC['notificationRelatedDocuments'], URIRef(doc.uri(base_uri))), # link to document version
             ]
         return triples
 

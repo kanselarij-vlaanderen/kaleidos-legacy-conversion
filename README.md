@@ -51,5 +51,5 @@ docker-compose exec convertor ./create_dump.sh create_vr_dump.py
 
 Create a dump for OC: 
 ```
-docker-compose convertor ./create_dump.sh create_oc_dump.py
+docker-compose exec convertor ./create_dump.sh create_oc_dump.py
 ```
